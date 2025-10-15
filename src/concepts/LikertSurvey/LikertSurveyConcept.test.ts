@@ -162,13 +162,12 @@ Deno.test("Action: submitResponse requirements are enforced", async () => {
 
   try {
     // Setup a valid survey and question
-    const { survey } =
-      (await surveyConcept.createSurvey({
-        author: authorA,
-        title: "Test Survey",
-        scaleMin: 1,
-        scaleMax: 5,
-      })) as { survey: ID };
+    const { survey } = (await surveyConcept.createSurvey({
+      author: authorA,
+      title: "Test Survey",
+      scaleMin: 1,
+      scaleMax: 5,
+    })) as { survey: ID };
     const { question } =
       (await surveyConcept.addQuestion({ survey, text: "A question" })) as {
         question: ID;
@@ -239,13 +238,12 @@ Deno.test("Action: updateResponse successfully updates a response and enforces r
   const surveyConcept = new LikertSurveyConcept(db);
   try {
     // Setup
-    const { survey } =
-      (await surveyConcept.createSurvey({
-        author: authorA,
-        title: "Test Survey",
-        scaleMin: 1,
-        scaleMax: 5,
-      })) as { survey: ID };
+    const { survey } = (await surveyConcept.createSurvey({
+      author: authorA,
+      title: "Test Survey",
+      scaleMin: 1,
+      scaleMax: 5,
+    })) as { survey: ID };
     const { question } =
       (await surveyConcept.addQuestion({ survey, text: "A question" })) as {
         question: ID;
