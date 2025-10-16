@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "design/concepts/scaler_concept.md",
+                "file": "design/learning/understanding-concepts.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "scaler_concept"
+              "title": "understanding-concepts"
             }
           }
         ]
@@ -171,6 +171,21 @@
   },
   "active": "60ccb8b74e272dda",
   "lastOpenFiles": [
+    "context/design/concepts/scaler_concept.md/20251015_225223.edbf4d89.md",
+    "context/design/concepts/scaler_concept.md/steps/Concept.6e430c7d.md",
+    "context/design/learning/understanding-concepts.md/20251015_221201.090dbb73.md",
+    "context/design/learning/understanding-concepts.md/steps/response.0540f65a.md",
+    "context/design/learning/understanding-concepts.md/20251015_221138.efb2b915.md",
+    "context/design/learning/understanding-concepts.md/steps/question.051c1fa7.md",
+    "context/design/learning/understanding-concepts.md/20251015_215958.30138bbf.md",
+    "context/design/learning/understanding-concepts.md/steps/response.dc12f881.md",
+    "context/design/learning/understanding-concepts.md/20251015_215942.32059928.md",
+    "context/design/learning/understanding-concepts.md/steps/question.1d0b8abe.md",
+    "context/design/learning/understanding-concepts.md/20251015_214541.f1854a0f.md",
+    "context/design/learning/understanding-concepts.md/steps/response.b9466e1b.md",
+    "context/design/learning/understanding-concepts.md/20251015_214523.4c455f58.md",
+    "context/design/learning/understanding-concepts.md/steps/question.5790f29a.md",
+    "design/concepts/scaler_concept.md",
     "context/design/concepts/scaler_concept.md/20251015_194426.268ac437.md",
     "context/design/concepts/scaler_concept.md/steps/Concept.c549e966.md",
     "context/design/concepts/scaler_concept.md/steps/Concept.aa67e222.md",
@@ -181,24 +196,9 @@
     "context/design/learning/understanding-concepts.md/steps/response.fcfe9805.md",
     "context/design/learning/understanding-concepts.md/20251013_120418.f313fcf5.md",
     "context/design/learning/understanding-concepts.md/steps/question.b38fc53a.md",
-    "design/concepts/scaler_concept.md",
     "context/design/learning/understanding-concepts.md/20251012_084537.0da69c76.md",
-    "context/design/learning/understanding-concepts.md/steps/response.162f09f2.md",
-    "context/design/learning/understanding-concepts.md/20251012_084500.733600d5.md",
-    "context/design/concepts/scaler_concept.md/steps/Concept.126aed01.md",
     "context/design/concepts/scaler_concept.md/steps",
-    "context/design/concepts/scaler_concept.md/20251012_084440.e82e54cb.md",
-    "context/design/concepts/scaler_concept.md",
-    "context/design/learning/understanding-concepts.md/20251012_083800.3a668b90.md",
-    "context/design/learning/understanding-concepts.md/steps/response.f942b6ed.md",
-    "context/design/learning/understanding-concepts.md/20251012_083744.cf8b4d8d.md",
-    "context/design/learning/understanding-concepts.md/steps/question.e20122db.md",
-    "design/background/concept-specifications.md",
-    "design/learning/exercise-0.md",
-    "context/design/concepts/scaler_concepts.spec/20251012_080803.20bb504d.md",
     "context/design/concepts/scaler_concepts.spec",
-    "design/concepts/scaler_concepts.spec",
-    "design/background/concept-design-overview.md",
-    "README.md"
+    "design/concepts/scaler_concepts.spec"
   ]
 }
