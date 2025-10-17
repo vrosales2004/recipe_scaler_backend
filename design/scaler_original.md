@@ -1,0 +1,134 @@
+# original code for scaler
+
+```typescript
+/**
+ * Scaler Concept - AI Augmented Version
+ */
+
+import { GeminiLLM } from './gemini-llm';
+
+export interface Recipe {
+    name: string;
+    scaleFactor: number;
+    ingredients: Ingredient[];
+    cookingMethods: string[];
+}
+
+export interface Ingredient {
+    item: string;
+    quantity: number;
+    unit: string;
+    scalingContext: string;
+}
+
+export class Scaler {
+
+    private recipes: Map<string, Recipe>;
+
+    constructor() {
+        this.recipes = new Map<string, Recipe>();
+    }
+
+    removeRecipe(name: string) {
+        this.recipes.delete(name);
+    }
+
+    addRecipe(name: string, originalPeople: number, targetPeople: number, ingredients: Ingredient[], cookingMethods: string[]) {
+        let scaleFactor = targetPeople / originalPeople;
+        let newRecipe = {
+            name: name,
+            scaleFactor: scaleFactor,
+            ingredients: ingredients,
+            cookingMethods: cookingMethods
+        }
+        this.recipes.set(name, newRecipe);
+    }
+
+    scaleManually(name: string): Ingredient[] {
+        let recipe = this.recipes.get(name);
+        if (!recipe) {
+            throw new Error(`Recipe "${name}" not found.`);
+        }
+        return recipe.ingredients.map(ing => ({
+            item: ing.item,
+            quantity: parseFloat((ing.quantity * recipe.scaleFactor).toFixed(2)),
+            unit: ing.unit,
+            scalingContext: ing.scalingContext
+        }));
+    }
+
+    async scaleRecipe(llm: GeminiLLM, name: string): Promise<Ingredient[]> {
+        let recipe = this.recipes.get(name);
+        if (!recipe) {
+            throw new Error(`Recipe "${name}" not found.`);
+        }
+        try {
+            console.log('🤖 Requesting scaled recipe from Gemini AI...');
+
+            const prompt = this.createScalePrompt(recipe!);
+            const response = await llm.executeLLM(prompt);
+
+            console.log('✅ Received response from Gemini AI!');
+            console.log('\n🤖 RAW GEMINI RESPONSE');
+            console.log('======================');
+            console.log(response);
+            console.log('======================\n');
+
+            // Sanitize the response by removing Markdown-style code block delimiters
+            const sanitizedResponse = response.replace(/```(?:json)?/g, '').trim();
+
+            // Parse the sanitized response as JSON
+            const parsedResponse = JSON.parse(sanitizedResponse);
+            return parsedResponse.ingredients;
+        } catch (error) {
+            console.error('❌ Error scaling recipe using AI:', (error as Error).message);
+            throw error;
+        }
+    }
+
+    /**
+     * Create the prompt for Gemini with hardwired preferences
+     */
+    private createScalePrompt(recipe: Recipe): string {
+        return `
+        You are a helpful AI assistant that scales ingredients for recipes.
+
+        - Input: A recipe with a name, scale factor, list of ingredients, and cooking methods.
+        - Output: A JSON object with the scaled ingredients, maintaining the scaling context for each ingredient.
+
+        - Each ingredient has:
+            - item: The name of the ingredient.
+            - quantity: The original quantity of the ingredient.
+            - unit: The unit of measurement for the ingredient.
+            - scalingContext: A description of helpful information to be used when deciding on how much to scale the ingredient.
+
+        The final output list of ingredients should be able to feed the specified number of people based on the scale factor.
+        Each ingredient should be scaled appropriately, considering its scaling context (some ingredients might not need to be scaled exactly according to the scale factor).
+
+        CRITICAL REQUIREMENTS:
+        - Scale the ingredients based on the scale factor provided (does NOT need to be followed strictly).
+        - Maintain the scaling context for each ingredient.
+        - Return the result in a strict JSON format as specified below.
+
+        Here is the recipe to scale:
+        ${JSON.stringify(recipe, null, 2)}
+
+        Return your response as a JSON object with this exact structure:
+        {
+        "name": "Example Recipe",
+        "ingredients": [
+            {
+            "item": "Ingredient Name",
+            "quantity": 0,
+            "unit": "Unit of Measurement",
+            "scalingContext": "Scaling Context Description"
+            }
+        ]
+        }
+
+        Return ONLY the JSON object, no additional text.`;
+
+    }
+
+}
+```
