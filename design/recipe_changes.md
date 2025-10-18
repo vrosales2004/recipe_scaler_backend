@@ -9,7 +9,7 @@
 **New `Recipe` Concept:**
 *   **Purpose Refined:** Focuses **solely** on "To manage the definition and storage of cooking recipes." The scaling concern has been completely removed.
 *   **State Refined:**
-    *   `Recipes` now contains `author`, `name`, `originalServings` (the canonical serving size), `ingredients` (list of `IngredientData`), and `cookingMethods`.
+    *   `Recipes` now contains a `RecipeId`, `author`, `name`, `originalServings` (the canonical serving size), `ingredients` (list of `IngredientData`), and `cookingMethods`.
     *   `IngredientData` is explicitly defined as a **data structure** (an entity type *within* the state of `Recipe`), not a separate concept. This aligns with the rule that concepts provide user-facing functionality, which a raw ingredient typically doesn't in isolation.
     *   The `scaleFactor` is no longer part of the `Recipe`'s state, as scaling is a separate concern.
 *   **Actions Refined:** Only core management actions remain: `addRecipe`, `removeRecipe`. Actions related to scaling have been moved.
