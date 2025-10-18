@@ -10,12 +10,14 @@
     "jsr:@std/uuid@*": "1.0.7",
     "jsr:@std/yaml@*": "1.0.9",
     "npm:@google/genai@*": "1.21.0",
+    "npm:@google/generative-ai@~0.24.1": "0.24.1",
     "npm:@types/mdast@4": "4.0.4",
     "npm:mdast-util-from-markdown@2": "2.0.2",
     "npm:mdast-util-frontmatter@2": "2.0.1",
     "npm:mdast-util-to-markdown@2": "2.1.2",
     "npm:micromark-extension-frontmatter@2": "2.0.0",
     "npm:mongodb@*": "6.10.0",
+    "npm:mongodb@^6.20.0": "6.20.0",
     "npm:sanitize-filename-ts@*": "1.0.2"
   },
   "jsr": {
@@ -55,8 +57,17 @@
         "ws"
       ]
     },
+    "@google/generative-ai@0.24.1": {
+      "integrity": "sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q=="
+    },
     "@mongodb-js/saslprep@1.1.9": {
       "integrity": "sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==",
+      "dependencies": [
+        "sparse-bitfield"
+      ]
+    },
+    "@mongodb-js/saslprep@1.3.1": {
+      "integrity": "sha512-6nZrq5kfAz0POWyhljnbWQQJQ5uT8oE2ddX303q1uY0tWsivWKgBDXBBvuFPwOqRRalXJuVO9EjOdVtuhLX0zg==",
       "dependencies": [
         "sparse-bitfield"
       ]
@@ -97,8 +108,12 @@
     "bignumber.js@9.3.1": {
       "integrity": "sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ=="
     },
+    "bson@6.10.4": {
+      "integrity": "sha512-WIsKqkSC0ABoBJuT1LEX+2HEvNmNKKgnTAyd0fL8qzK4SH2i9NXg+t08YtdZp/V9IZ33cxe3iV4yM0qg8lMQng=="
+    },
     "bson@6.9.0": {
-      "integrity": "sha512-X9hJeyeM0//Fus+0pc5dSUMhhrrmWwQUtdavaQeF3Ta6m69matZkGWV/MrBcnwUeLC8W9kwwc2hfkZgUuCX3Ig=="
+      "integrity": "sha512-X9hJeyeM0//Fus+0pc5dSUMhhrrmWwQUtdavaQeF3Ta6m69matZkGWV/MrBcnwUeLC8W9kwwc2hfkZgUuCX3Ig==",
+      "deprecated": true
     },
     "buffer-equal-constant-time@1.0.1": {
       "integrity": "sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA=="
@@ -464,12 +479,27 @@
         "whatwg-url@13.0.0"
       ]
     },
+    "mongodb-connection-string-url@3.0.2": {
+      "integrity": "sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==",
+      "dependencies": [
+        "@types/whatwg-url",
+        "whatwg-url@13.0.0"
+      ]
+    },
     "mongodb@6.10.0": {
       "integrity": "sha512-gP9vduuYWb9ZkDM546M+MP2qKVk5ZG2wPF63OvSRuUbqCR+11ZCAE1mOfllhlAG0wcoJY5yDL/rV3OmYEwXIzg==",
       "dependencies": [
-        "@mongodb-js/saslprep",
-        "bson",
-        "mongodb-connection-string-url"
+        "@mongodb-js/saslprep@1.1.9",
+        "bson@6.9.0",
+        "mongodb-connection-string-url@3.0.1"
+      ]
+    },
+    "mongodb@6.20.0": {
+      "integrity": "sha512-Tl6MEIU3K4Rq3TSHd+sZQqRBoGlFsOgNrH5ltAcFBV62Re3Fd+FcaVf8uSEQFOJ51SDowDVttBTONMfoYWrWlQ==",
+      "dependencies": [
+        "@mongodb-js/saslprep@1.3.1",
+        "bson@6.10.4",
+        "mongodb-connection-string-url@3.0.2"
       ]
     },
     "ms@2.1.3": {
@@ -581,6 +611,8 @@
     "https://esm.sh/unist-util-visit@5": "https://esm.sh/unist-util-visit@5.0.0"
   },
   "remote": {
+    "https://deno.land/x/dotenv@v3.2.2/mod.ts": "077b48773de9205266a0b44c3c3a3c3083449ed64bb0b6cc461b95720678d38e",
+    "https://deno.land/x/dotenv@v3.2.2/util.ts": "693730877b13f8ead2b79b2aa31e2a0652862f7dc0c5f6d2f313f4d39c7b7670",
     "https://esm.sh/unist-util-is@6.0.0/denonext/unist-util-is.mjs": "bbc00c612fd8daa022e50a0061856c52be17e0caa699dffa1e7b83b3bbe7b9f2",
     "https://esm.sh/unist-util-is@6.0.0?target=denonext": "7ac7092e893f27ed8edacb142d04dcc37169fdcfaa2ae8833a51fb9762d5e41f",
     "https://esm.sh/unist-util-visit-parents@6.0.1/denonext/do-not-use-color.mjs": "94b57609e52050f8d615ab3d096a2efb7183053a494dee89f9af2fe6c8fb9f0b",
@@ -590,8 +622,13 @@
     "https://esm.sh/unist-util-visit@5.0.0/denonext/unist-util-visit.mjs": "a09fab16c3eafd466e5b5dab65ab76cb8f1eafa360b457eef35a529f59725d7f"
   },
   "workspace": {
+    "dependencies": [
+      "npm:@google/generative-ai@0.12",
+      "npm:mongodb@^6.5.0"
+    ],
     "packageJson": {
       "dependencies": [
+        "npm:@google/generative-ai@~0.24.1",
         "npm:mongodb@^6.20.0"
       ]
     }

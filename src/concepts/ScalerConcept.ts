@@ -2,7 +2,7 @@ import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 import RecipeConcept from "./RecipeConcept.ts"; // Dependency on RecipeConcept
-import { GeminiLLM } from "../../gemini-llm.ts"; // Import the specific Gemini LLM client
+import { GeminiLLM, ILLMClient } from "./../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
 
 // Collection prefix to ensure namespace separation in MongoDB
 const PREFIX = "RecipeScaler" + ".";
@@ -27,8 +27,7 @@ interface IngredientData {
 /**
  * @interface RecipeDocContext
  * A simplified structure representing the core context of a recipe
- * for the purpose of LLM prompting, similar to the original 'Recipe' interface
- * you provided in your 'scaler_original' code, but adapted for concept design types.
+ * for the purpose of LLM prompting
  */
 interface RecipeDocContext {
   name: string;
@@ -49,7 +48,6 @@ interface ScaledRecipeDoc {
   targetServings: number;
   scaledIngredients: IngredientData[]; // The list of ingredients after scaling
   scalingMethod: "manual" | "ai"; // Indicates how this scaling was performed
-  generatedAt: Date; // Timestamp of when this scaled recipe was generated
   // Optional: userId: ID; // User who requested this scaling (if applicable)
 }
 
@@ -67,24 +65,22 @@ interface ScaledRecipeDoc {
 export default class RecipeScalerConcept {
   scaledRecipes: Collection<ScaledRecipeDoc>;
   private recipeConcept: RecipeConcept; // Dependency on RecipeConcept
-  private geminiLLM: GeminiLLM; // Specific dependency on GeminiLLM
 
   /**
    * @param db The MongoDB database instance.
    * @param recipeConceptInstance An instance of the RecipeConcept for querying base recipe data.
-   * @param geminiApiKey The API key required to authenticate with the Gemini LLM service.
+   * @param llmClient An instance of an LLM client (e.g., GeminiLLM or a mock)
    */
   constructor(
     private readonly db: Db,
     recipeConceptInstance: RecipeConcept,
-    geminiApiKey: string,
+    private llmClient: ILLMClient,
   ) {
     this.scaledRecipes = this.db.collection<ScaledRecipeDoc>(
       PREFIX + "scaledRecipes",
     );
     this.recipeConcept = recipeConceptInstance;
-    // Instantiate GeminiLLM directly within the concept constructor
-    this.geminiLLM = new GeminiLLM(geminiApiKey);
+    this.llmClient = llmClient;
   }
 
   /**
@@ -136,7 +132,7 @@ export default class RecipeScalerConcept {
     }));
 
     // 4. Effect: Create or update the ScaledRecipe record
-    let scaledRecipeDoc = await this.scaledRecipes.findOne({
+    const scaledRecipeDoc = await this.scaledRecipes.findOne({
       baseRecipeId,
       targetServings,
       scalingMethod: "manual",
@@ -147,7 +143,7 @@ export default class RecipeScalerConcept {
       // Update existing record
       await this.scaledRecipes.updateOne(
         { _id: scaledRecipeDoc._id },
-        { $set: { scaledIngredients, generatedAt: new Date() } },
+        { $set: { scaledIngredients } },
       );
       scaledRecipeId = scaledRecipeDoc._id;
     } else {
@@ -159,7 +155,6 @@ export default class RecipeScalerConcept {
         targetServings,
         scaledIngredients,
         scalingMethod: "manual",
-        generatedAt: new Date(),
         // userId: (/* obtain current user ID from a Session concept if needed */)
       });
     }
@@ -178,7 +173,7 @@ export default class RecipeScalerConcept {
    * @requires The baseRecipeId must exist in the Recipe concept.
    * @requires targetServings must be greater than 0.
    * @requires targetServings must not equal the originalServings of the baseRecipeId.
-   * @effects Fetches the entire recipe context, uses an internal LLM (mocked) to
+   * @effects Fetches the entire recipe context, uses an internal LLM to
    *          intelligently adjust ingredient quantities, and either creates a new
    *          ScaledRecipe record or updates an existing one for that baseRecipeId
    *          and targetServings with 'ai' scalingMethod, and stores it.
@@ -210,11 +205,9 @@ export default class RecipeScalerConcept {
 
     // 3. Effect: Use LLM for intelligent scaling
     try {
-      console.log("🤖 Requesting scaled recipe from Gemini AI...");
+      console.log("🤖 Requesting scaled recipe from AI...");
 
-      // Prepare recipe context for the LLM, similar to your original structure
-      // Note: your original `Recipe` interface had `scaleFactor`, here we pass `originalServings` and `targetServings`
-      // for the LLM to deduce the factor and apply intelligent logic.
+      // Prepare recipe context for the LLM
       const recipeContext: RecipeDocContext = {
         name: baseRecipe.name,
         originalServings: baseRecipe.originalServings,
@@ -224,10 +217,10 @@ export default class RecipeScalerConcept {
       };
 
       const prompt = this.createScalePrompt(recipeContext);
-      const response = await this.geminiLLM.executeLLM(prompt); // Use the GeminiLLM instance
+      const response = await this.llmClient.executeLLM(prompt); // Use the injected LLM client
 
-      console.log("✅ Received response from Gemini AI!");
-      console.log("\n🤖 RAW GEMINI RESPONSE");
+      console.log("✅ Received response from AI!");
+      console.log("\n🤖 RAW AI RESPONSE");
       console.log("======================");
       console.log(response);
       console.log("======================\n");
@@ -241,7 +234,7 @@ export default class RecipeScalerConcept {
       const scaledIngredients: IngredientData[] = parsedResponse.ingredients;
 
       // 4. Effect: Create or update the ScaledRecipe record
-      let scaledRecipeDoc = await this.scaledRecipes.findOne({
+      const scaledRecipeDoc = await this.scaledRecipes.findOne({
         baseRecipeId,
         targetServings,
         scalingMethod: "ai",
@@ -252,7 +245,7 @@ export default class RecipeScalerConcept {
         // Update existing record
         await this.scaledRecipes.updateOne(
           { _id: scaledRecipeDoc._id },
-          { $set: { scaledIngredients, generatedAt: new Date() } },
+          { $set: { scaledIngredients } },
         );
         scaledRecipeId = scaledRecipeDoc._id;
       } else {
@@ -264,7 +257,6 @@ export default class RecipeScalerConcept {
           targetServings,
           scaledIngredients,
           scalingMethod: "ai",
-          generatedAt: new Date(),
           // userId: (/* obtain current user ID from a Session concept if needed */)
         });
       }
@@ -272,10 +264,11 @@ export default class RecipeScalerConcept {
       return { scaledRecipeId };
     } catch (error) {
       console.error(
-        "❌ Error scaling recipe using Gemini AI:",
+        "❌ Error scaling recipe using AI:",
         (error as Error).message,
       );
-      return { error: `Gemini AI scaling failed: ${(error as Error).message}` };
+      // Re-throw the error as a concept-level error
+      return { error: `AI scaling failed: ${(error as Error).message}` };
     }
   }
 

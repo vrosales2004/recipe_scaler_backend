@@ -1,6 +1,12 @@
 {
     "imports": {
+        "google-generative-ai": "npm:@google/generative-ai@^0.12.0",
+        "mongodb": "npm:mongodb@^6.5.0",
+        "dotenv": "https://deno.land/x/dotenv@v3.2.2/mod.ts",
         "@concepts/": "./src/concepts/",
         "@utils/": "./src/utils/"
+    },
+    "tasks": {
+      "test": "deno test --allow-env --allow-net --allow-sys --allow-read"
     }
 }
