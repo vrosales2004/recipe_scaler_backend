@@ -10,6 +10,8 @@ principle given a recipe name to search in database of recipes
 
 state
     a set of scaledRecipes
+        an ID
+        an ID for the base recipe
         a name
         a number of servings
         a set of ingredients

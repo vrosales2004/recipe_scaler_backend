@@ -65,6 +65,13 @@
     *   **Clear Test Scopes:** The `testDb()` utility ensures a clean database state for every individual test, guaranteeing isolation and preventing test interference.
     *   **Reduced Regression Risk:** The explicit boundaries and interface-based communication make changes more localized and predictable.
 
+### Issues Encountered
+*   **Unclear Concepts:** My initial design of the concepts I had were very vague and not the best to implement when thinking about the bigger picture. At this time I chose to use context to help me refine my concepts more to how they were described in the rubric.
+*   **Parameters in Concepts:** There were some clear lack of connections between some of my concepts. For example, one of the main changes was to implement authors associated with each of the recipes. This along with IDs made interconnectivity between the concepts much easier. This also led to the design of the user authentication concept.
+*   **Updating the LLM for Deno:** I took advantage of context's knowledge of deno to be able to turn the original code of the LLM into something more usable with Deno.
+*   **User Authentication:** Upon thinking about these concepts more as a whole application, I realized that there would be multiple users with different recipes. Changing my concepts on a larger scale to accept multiple users was a worthwhile change in the long run of the application. The authentication system is simple but allows for much more usability.
+*   **LLM Prompting:** Learning how to best prompt the LLM was a large part of working on the code for the Tips page. Since this was not implemented before I was able to use my knowledge from previously working on the prompt to create the prompt for the tips.
+
 ### Conclusion: A More Robust and Scalable Application
 
 In summary, my application has evolved from a potentially intertwined system to a **well-structured, highly modular, and behaviorally focused architecture**. Each "feature" of my recipe application is now a self-contained, independently understandable, and reusable **concept**.

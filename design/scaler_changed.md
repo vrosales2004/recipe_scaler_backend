@@ -8,11 +8,11 @@
 **Current `RecipeScaler` Concept:**
 *   **Purpose Defined:** "To provide and manage scaled versions of existing recipes, intelligently adjusting ingredient quantities..." Focus on *providing* and *managing instances* of scaled recipes.
 *   **State Introduced:** A new dedicated state, `ScaledRecipes`, which stores records of:
+    *   `scaledRecipeId` (a reference ID for this scaled recipe)
     *   `baseRecipeId` (a reference to the `Recipe` concept).
     *   `targetServings` (the desired new serving size).
     *   `scaledIngredients` (the calculated/AI-adjusted ingredient list).
     *   `scalingMethod` (`'manual'` or `'ai'`).
-    *   `generatedAt` (metadata for traceability).
 *   **Actions Centralized:** `scaleManually` and `scaleRecipeAI` are the core actions.
 *   **Key Design Changes:**
     *   **Separation of Concerns:** Explicitly separated scaling logic and state from the base `Recipe` definition. The `RecipeScaler` now manages *derived* versions, not the original.
