@@ -1,8 +1,8 @@
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
-import RecipeConcept from "./RecipeConcept.ts"; // Dependency on RecipeConcept
-import { GeminiLLM, ILLMClient } from "./../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
+import RecipeConcept from "../Recipe/RecipeConcept.ts"; // Dependency on RecipeConcept
+import { GeminiLLM, ILLMClient } from "./../../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
 
 // Collection prefix to ensure namespace separation in MongoDB
 const PREFIX = "RecipeScaler" + ".";
@@ -73,7 +73,7 @@ export default class RecipeScalerConcept {
    */
   constructor(
     private readonly db: Db,
-    recipeConceptInstance: RecipeConcept,
+    private readonly recipeConceptInstance: RecipeConcept,
     private llmClient: ILLMClient,
   ) {
     this.scaledRecipes = this.db.collection<ScaledRecipeDoc>(
@@ -103,6 +103,7 @@ export default class RecipeScalerConcept {
       targetServings: number;
     },
   ): Promise<{ scaledRecipeId: ScaledRecipe } | { error: string }> {
+    console.log("RecipeConcept instance:", this.recipeConcept);
     // 1. Precondition: Fetch the base recipe from the Recipe concept
     const baseRecipe = await this.recipeConcept._getRecipeById({
       recipeId: baseRecipeId,
@@ -327,21 +328,22 @@ export default class RecipeScalerConcept {
    *
    * @param {Object} params - The query parameters.
    * @param {ScaledRecipe} params.scaledRecipeId - The ID of the scaled recipe to retrieve.
-   * @returns {Promise<ScaledRecipeDoc | {error: string}>} The scaled recipe document if found, or an error.
+   * @returns {Promise<ScaledRecipeDoc[] | {error: string}>} An array containing the scaled recipe document if found, or an error.
    *
    * @requires scaledRecipeId must exist in the RecipeScaler concept.
-   * @effects Returns the ScaledRecipeDoc for the specified ID.
+   * @effects Returns an array with the ScaledRecipeDoc for the specified ID.
    */
   async _getScaledRecipe(
     { scaledRecipeId }: { scaledRecipeId: ScaledRecipe },
-  ): Promise<ScaledRecipeDoc | { error: string }> {
+  ): Promise<ScaledRecipeDoc[] | { error: string }> {
+    console.log("Fetching scaled recipe with ID:", scaledRecipeId);
     const scaledRecipe = await this.scaledRecipes.findOne({
       _id: scaledRecipeId,
     });
     if (!scaledRecipe) {
       return { error: `Scaled recipe with ID ${scaledRecipeId} not found.` };
     }
-    return scaledRecipe;
+    return [scaledRecipe];
   }
 
   /**

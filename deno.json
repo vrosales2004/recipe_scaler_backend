@@ -7,6 +7,7 @@
         "@utils/": "./src/utils/"
     },
     "tasks": {
-      "test": "deno test --allow-env --allow-net --allow-sys --allow-read"
+      "test": "deno test --allow-env --allow-net --allow-sys --allow-read",
+      "concepts": "deno run --allow-net --allow-read --allow-sys --allow-env src/concept_server.ts --port 8000 --baseUrl /api"
     }
 }
