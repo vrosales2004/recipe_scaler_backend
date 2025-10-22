@@ -142,13 +142,14 @@ export default class RecipeConcept {
    *
    * @param {Object} params - The query parameters.
    * @param {Recipe} params.recipeId - The ID of the recipe to retrieve.
-   * @returns {Promise<RecipeDoc | null>} The recipe document if found, otherwise null.
+   * @returns {Promise<RecipeDoc[]>} An array containing the recipe document if found, otherwise an empty array.
    */
   async _getRecipeById(
     { recipeId }: { recipeId: Recipe },
-  ): Promise<RecipeDoc | null> {
+  ): Promise<RecipeDoc[]> {
     console.log("Fetching recipe with ID:", recipeId);
-    return await this.recipes.findOne({ _id: recipeId });
+    const recipe = await this.recipes.findOne({ _id: recipeId });
+    return recipe ? [recipe] : [];
   }
 
   /**

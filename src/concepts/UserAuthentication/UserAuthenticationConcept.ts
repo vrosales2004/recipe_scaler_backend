@@ -190,39 +190,41 @@ export default class UserAuthenticationConcept {
    * Useful for internal checks in syncs or middleware.
    * @param {Object} params - The query parameters.
    * @param {string} params.sessionId - The session ID to look up.
-   * @returns {Promise<SessionDoc | null>} The active session document if found and not expired, otherwise null.
+   * @returns {Promise<SessionDoc[]>} An array containing the active session document if found and not expired, otherwise an empty array.
    */
   async _getActiveSession(
     { sessionId }: { sessionId: string },
-  ): Promise<SessionDoc | null> {
+  ): Promise<SessionDoc[]> {
     const session = await this.sessions.findOne({ sessionId });
     if (session && session.expirationTime > Date.now()) {
-      return session;
+      return [session];
     }
-    // If found but expired, or not found, return null.
+    // If found but expired, or not found, return empty array.
     // Optionally, you might want to delete expired sessions here.
-    return null;
+    return [];
   }
 
   /**
    * Query: Finds a user by their username.
    * @param {Object} params - The query parameters.
    * @param {string} params.username - The username to search for.
-   * @returns {Promise<UserDoc | null>} The user document if found, otherwise null.
+   * @returns {Promise<UserDoc[]>} An array containing the user document if found, otherwise an empty array.
    */
   async _getUserByUsername(
     { username }: { username: string },
-  ): Promise<UserDoc | null> {
-    return await this.users.findOne({ username });
+  ): Promise<UserDoc[]> {
+    const user = await this.users.findOne({ username });
+    return user ? [user] : [];
   }
 
   /**
    * Query: Finds a user by their User ID.
    * @param {Object} params - The query parameters.
    * @param {User} params.userId - The user ID to search for.
-   * @returns {Promise<UserDoc | null>} The user document if found, otherwise null.
+   * @returns {Promise<UserDoc[]>} An array containing the user document if found, otherwise an empty array.
    */
-  async _getUserById({ userId }: { userId: User }): Promise<UserDoc | null> {
-    return await this.users.findOne({ _id: userId });
+  async _getUserById({ userId }: { userId: User }): Promise<UserDoc[]> {
+    const user = await this.users.findOne({ _id: userId });
+    return user ? [user] : [];
   }
 }

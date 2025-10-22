@@ -105,12 +105,13 @@ export default class RecipeScalerConcept {
   ): Promise<{ scaledRecipeId: ScaledRecipe } | { error: string }> {
     console.log("RecipeConcept instance:", this.recipeConcept);
     // 1. Precondition: Fetch the base recipe from the Recipe concept
-    const baseRecipe = await this.recipeConcept._getRecipeById({
+    const baseRecipeArray = await this.recipeConcept._getRecipeById({
       recipeId: baseRecipeId,
     });
-    if (!baseRecipe) {
+    if (baseRecipeArray.length === 0) {
       return { error: `Base recipe with ID ${baseRecipeId} not found.` };
     }
+    const baseRecipe = baseRecipeArray[0];
 
     // 2. Preconditions: targetServings validation
     if (targetServings <= 0) {
@@ -186,12 +187,13 @@ export default class RecipeScalerConcept {
     },
   ): Promise<{ scaledRecipeId: ScaledRecipe } | { error: string }> {
     // 1. Precondition: Fetch the base recipe from the Recipe concept
-    const baseRecipe = await this.recipeConcept._getRecipeById({
+    const baseRecipeArray = await this.recipeConcept._getRecipeById({
       recipeId: baseRecipeId,
     });
-    if (!baseRecipe) {
+    if (baseRecipeArray.length === 0) {
       return { error: `Base recipe with ID ${baseRecipeId} not found.` };
     }
+    const baseRecipe = baseRecipeArray[0];
 
     // 2. Preconditions: targetServings validation
     if (targetServings <= 0) {
@@ -328,20 +330,20 @@ export default class RecipeScalerConcept {
    *
    * @param {Object} params - The query parameters.
    * @param {ScaledRecipe} params.scaledRecipeId - The ID of the scaled recipe to retrieve.
-   * @returns {Promise<ScaledRecipeDoc[] | {error: string}>} An array containing the scaled recipe document if found, or an error.
+   * @returns {Promise<ScaledRecipeDoc[]>} An array containing the scaled recipe document if found, otherwise an empty array.
    *
    * @requires scaledRecipeId must exist in the RecipeScaler concept.
    * @effects Returns an array with the ScaledRecipeDoc for the specified ID.
    */
   async _getScaledRecipe(
     { scaledRecipeId }: { scaledRecipeId: ScaledRecipe },
-  ): Promise<ScaledRecipeDoc[] | { error: string }> {
+  ): Promise<ScaledRecipeDoc[]> {
     console.log("Fetching scaled recipe with ID:", scaledRecipeId);
     const scaledRecipe = await this.scaledRecipes.findOne({
       _id: scaledRecipeId,
     });
     if (!scaledRecipe) {
-      return { error: `Scaled recipe with ID ${scaledRecipeId} not found.` };
+      return [];
     }
     return [scaledRecipe];
   }
