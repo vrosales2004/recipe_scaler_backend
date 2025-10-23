@@ -34,9 +34,9 @@ export class GeminiLLM implements ILLMClient {
       );
     }
     const genAI = new GoogleGenerativeAI(apiKey);
-    // You can specify different Gemini models here if needed, e.g., "gemini-1.5-flash", "gemini-1.5-pro"
-    // "gemini-pro" is a good general-purpose model for text generation tasks.
-    this.model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Using gemini-2.0-flash as it's the current model
+    // Alternative models: "gemini-1.5-flash", "gemini-1.5-pro" for other options
+    this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   }
 
   /**

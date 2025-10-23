@@ -328,4 +328,17 @@ export default class ScalingTipsConcept {
     }
     return await this.tips.find(query).toArray();
   }
+
+  /**
+   * Query: Retrieves a specific scaling tip by its ID.
+   *
+   * @param {Object} params - The query parameters.
+   * @param {Tip} params.tipId - The ID of the tip to retrieve.
+   * @returns {Promise<TipDoc | null>} The tip document if found, or null if not found.
+   */
+  async _getScalingTipById(
+    { tipId }: { tipId: Tip },
+  ): Promise<TipDoc | null> {
+    return await this.tips.findOne({ _id: tipId });
+  }
 }

@@ -7,6 +7,9 @@ import { GeminiLLM } from "./geminiLLMClient.ts";
 import RecipeConcept from "./concepts/Recipe/RecipeConcept.ts";
 import { Db, MongoClient } from "npm:mongodb";
 
+// Load config.json
+const config = JSON.parse(Deno.readTextFileSync("config.json"));
+
 // Parse command-line arguments for port and base URL
 const flags = parseArgs(Deno.args, {
   string: ["port", "baseUrl"],
@@ -65,11 +68,11 @@ async function main() {
         // Create Recipe concept instance first
         const recipeConcept = new RecipeConcept(db);
 
-        // Get Gemini API key from environment
-        const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+        // Get Gemini API key from config
+        const geminiApiKey = config.apiKey;
         if (!geminiApiKey) {
           console.error(
-            "❌ GEMINI_API_KEY environment variable is required for Scaler concept",
+            "❌ API key not found in config.json for Scaler concept",
           );
           continue;
         }
@@ -80,11 +83,11 @@ async function main() {
         // Create Scaler concept with all required dependencies
         instance = new ConceptClass(db, recipeConcept, llmClient);
       } else if (conceptName === "Tips") {
-        // Get Gemini API key from environment
-        const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+        // Get Gemini API key from config
+        const geminiApiKey = config.apiKey;
         if (!geminiApiKey) {
           console.error(
-            "❌ GEMINI_API_KEY environment variable is required for Tips concept",
+            "❌ API key not found in config.json for Tips concept",
           );
           continue;
         }
@@ -101,6 +104,8 @@ async function main() {
 
       const conceptApiName = conceptName === "Scaler"
         ? "RecipeScaler"
+        : conceptName === "Tips"
+        ? "ScalingTips"
         : conceptName;
       console.log(
         `- Registering concept: ${conceptName} at ${BASE_URL}/${conceptApiName}`,
