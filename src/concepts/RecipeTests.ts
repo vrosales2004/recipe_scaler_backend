@@ -6,7 +6,7 @@ import {
 } from "jsr:@std/assert";
 import { testDb } from "@utils/database.ts"; // Utility for test database setup
 import { ID } from "@utils/types.ts"; // Generic ID type
-import RecipeConcept from "./RecipeConcept.ts"; // The concept to be tested
+import RecipeConcept from "./Recipe/RecipeConcept.ts"; // The concept to be tested
 
 // Define generic ID types for consistency
 type Author = ID;
@@ -81,11 +81,11 @@ Deno.test("Principle: Recipe manually inputted, stored, and accessed later", asy
       fetchedRecipeById,
       "Apple Pie should be retrievable by its ID.",
     );
-    assertEquals(fetchedRecipeById.name, "Apple Pie");
-    assertEquals(fetchedRecipeById.author, authorAlice);
-    assertEquals(fetchedRecipeById.originalServings, 8);
-    assertEquals(fetchedRecipeById.ingredients.length, 3);
-    assertEquals(fetchedRecipeById.cookingMethods.length, 3);
+    assertEquals(fetchedRecipeById[0].name, "Apple Pie");
+    assertEquals(fetchedRecipeById[0].author, authorAlice);
+    assertEquals(fetchedRecipeById[0].originalServings, 8);
+    assertEquals(fetchedRecipeById[0].ingredients.length, 3);
+    assertEquals(fetchedRecipeById[0].cookingMethods.length, 3);
 
     // Access the recipe by name and author
     const fetchedRecipeByName = await recipeConcept._getRecipeByName({
@@ -144,12 +144,12 @@ Deno.test("addRecipe: should successfully add a new recipe", async () => {
       fetchedRecipe,
       "The added recipe should be retrievable by its ID",
     );
-    assertEquals(fetchedRecipe.name, "Classic Chocolate Chip Cookies");
-    assertEquals(fetchedRecipe.author, authorAlice);
-    assertEquals(fetchedRecipe.originalServings, 12);
-    assertEquals(fetchedRecipe.ingredients.length, mockIngredients.length);
+    assertEquals(fetchedRecipe[0].name, "Classic Chocolate Chip Cookies");
+    assertEquals(fetchedRecipe[0].author, authorAlice);
+    assertEquals(fetchedRecipe[0].originalServings, 12);
+    assertEquals(fetchedRecipe[0].ingredients.length, mockIngredients.length);
     assertEquals(
-      fetchedRecipe.cookingMethods.length,
+      fetchedRecipe[0].cookingMethods.length,
       mockCookingMethods.length,
     );
   } finally {
@@ -361,7 +361,7 @@ Deno.test("removeRecipe: should successfully remove an existing recipe", async (
     });
     assertEquals(
       fetchedRecipe,
-      null,
+      [],
       "The removed recipe should no longer be found",
     );
   } finally {
@@ -410,9 +410,9 @@ Deno.test("_getRecipeById: should return the correct recipe if it exists", async
       recipeId: aliceRecipeId,
     });
     assertExists(fetchedRecipe, "Should find Alice's lasagna by ID");
-    assertEquals(fetchedRecipe._id, aliceRecipeId);
-    assertEquals(fetchedRecipe.name, "Alice's Famous Lasagna");
-    assertEquals(fetchedRecipe.author, authorAlice);
+    assertEquals(fetchedRecipe[0]._id, aliceRecipeId);
+    assertEquals(fetchedRecipe[0].name, "Alice's Famous Lasagna");
+    assertEquals(fetchedRecipe[0].author, authorAlice);
   } finally {
     await client.close();
   }
@@ -428,7 +428,7 @@ Deno.test("_getRecipeById: should return null if the recipe ID does not exist", 
     });
     assertEquals(
       fetchedRecipe,
-      null,
+      [],
       "Should return null for a non-existent recipe ID",
     );
   } finally {

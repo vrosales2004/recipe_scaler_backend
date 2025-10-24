@@ -9,8 +9,8 @@ import { ID } from "@utils/types.ts"; // Generic ID type
 import { config } from "dotenv"; // Import config from dotenv
 
 // Import the concepts and LLM client interface
-import RecipeConcept from "./RecipeConcept.ts";
-import RecipeScalerConcept from "./ScalerConcept.ts";
+import RecipeConcept from "./Recipe/RecipeConcept.ts";
+import RecipeScalerConcept from "./Scaler/ScalerConcept.ts";
 import { GeminiLLM, ILLMClient } from "./../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
 
 // Define generic ID types for consistency
@@ -375,7 +375,7 @@ Deno.test({
       });
       assertNotEquals("error" in fetchedScaledRecipe, true);
       assertEquals(
-        (fetchedScaledRecipe as { scalingMethod: string }).scalingMethod,
+        (fetchedScaledRecipe[0] as { scalingMethod: string }).scalingMethod,
         "manual",
       );
 
@@ -384,7 +384,7 @@ Deno.test({
       const originalFlour = mockIngredientsForScaling.find((i) =>
         i.name === "Flour"
       )!;
-      const scaledFlour = (fetchedScaledRecipe as {
+      const scaledFlour = (fetchedScaledRecipe[0] as {
         scaledIngredients: typeof mockIngredientsForScaling;
       }).scaledIngredients.find((i) => i.name === "Flour")!;
       assertEquals(
@@ -408,7 +408,7 @@ Deno.test({
         ._getScaledRecipe({ scaledRecipeId: scaledRecipeIdDown });
       assertNotEquals("error" in fetchedScaledRecipeDown, true);
       assertEquals(
-        (fetchedScaledRecipeDown as { scalingMethod: string }).scalingMethod,
+        (fetchedScaledRecipeDown[0] as { scalingMethod: string }).scalingMethod,
         "manual",
       );
 
@@ -416,7 +416,7 @@ Deno.test({
       const originalWater = mockIngredientsForScaling.find((i) =>
         i.name === "Water"
       )!;
-      const scaledWater = (fetchedScaledRecipeDown as {
+      const scaledWater = (fetchedScaledRecipeDown[0] as {
         scaledIngredients: typeof mockIngredientsForScaling;
       }).scaledIngredients.find((i) => i.name === "Water")!;
       assertEquals(
@@ -825,12 +825,15 @@ Deno.test({
         scaledRecipeId,
       });
       assertNotEquals("error" in fetched, true);
-      assertEquals((fetched as { _id: ScaledRecipe })._id, scaledRecipeId);
+      assertEquals((fetched[0] as { _id: ScaledRecipe })._id, scaledRecipeId);
       assertEquals(
-        (fetched as { baseRecipeId: Recipe }).baseRecipeId,
+        (fetched[0] as { baseRecipeId: Recipe }).baseRecipeId,
         baseRecipeId,
       );
-      assertEquals((fetched as { targetServings: number }).targetServings, 4);
+      assertEquals(
+        (fetched[0] as { targetServings: number }).targetServings,
+        4,
+      );
     } finally {
       await client.close();
     }
@@ -852,14 +855,15 @@ Deno.test({
       llmClient,
     );
     try {
-      const nonExistentId = "scaled:fake-id" as ScaledRecipe;
-      const fetched = await recipeScalerConcept._getScaledRecipe({
-        scaledRecipeId: nonExistentId,
+      const nonExistentScaledRecipeId = "scaled-recipe:fake-id" as ScaledRecipe;
+      const fetchedScaledRecipe = await recipeScalerConcept._getScaledRecipe({
+        scaledRecipeId: nonExistentScaledRecipeId,
       });
-      assertEquals("error" in fetched, true);
+      assertEquals(Array.isArray(fetchedScaledRecipe), true);
       assertEquals(
-        (fetched as { error: string }).error,
-        `Scaled recipe with ID ${nonExistentId} not found.`,
+        fetchedScaledRecipe.length,
+        0,
+        "Expected an empty array for a non-existent scaled recipe ID.",
       );
     } finally {
       await client.close();

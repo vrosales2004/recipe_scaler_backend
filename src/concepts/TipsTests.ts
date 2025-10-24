@@ -10,7 +10,7 @@ import { ID } from "@utils/types.ts"; // Generic ID type
 // Removed: import { config } from "dotenv"; // No longer calling config directly in tests
 
 // Import the concepts and LLM client interface (only the interface needed)
-import ScalingTipsConcept from "./TipsConcept.ts";
+import ScalingTipsConcept from "./Tips/TipsConcept.ts";
 import { ILLMClient } from "./../geminiLLMClient.ts"; // Re-use the interface definition
 
 // Define generic ID types for consistency

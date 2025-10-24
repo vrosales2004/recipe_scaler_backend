@@ -8,7 +8,7 @@ import {
 import { testDb } from "@utils/database.ts"; // Utility for test database setup
 import { ID } from "@utils/types.ts"; // Generic ID type
 
-import UserAuthenticationConcept from "./UserAuthenticationConcept.ts";
+import UserAuthenticationConcept from "./UserAuthentication/UserAuthenticationConcept.ts";
 
 // Define generic ID type for consistency
 type User = ID;
@@ -79,8 +79,8 @@ Deno.test("Principle: User registers, logs in, and is recognized as authenticate
       fetchedUser,
       "Registered user should be retrievable by username.",
     );
-    assertEquals(fetchedUser._id, registeredUserId);
-    assertEquals(fetchedUser.username, testUsername);
+    assertEquals(fetchedUser[0]._id, registeredUserId);
+    assertEquals(fetchedUser[0].username, testUsername);
 
     // 2. The user subsequently logs in with those credentials
     const loginResult = await authConcept.login({
@@ -113,12 +113,12 @@ Deno.test("Principle: User registers, logs in, and is recognized as authenticate
       "An active session should exist for the provided session ID.",
     );
     assertEquals(
-      activeSession.user,
+      activeSession[0].user,
       registeredUserId,
       "Session should link to the correct user.",
     );
     assert(
-      activeSession.expirationTime > Date.now(),
+      activeSession[0].expirationTime > Date.now(),
       "Session should not be expired.",
     );
 
@@ -152,9 +152,9 @@ Deno.test("register: should successfully create a new user", async () => {
       fetchedUser,
       "The registered user should be retrievable by ID.",
     );
-    assertEquals(fetchedUser.username, "newuser");
+    assertEquals(fetchedUser[0].username, "newuser");
     assertNotEquals(
-      fetchedUser.hashedPassword,
+      fetchedUser[0].hashedPassword,
       longPassword,
       "Password should be hashed, not stored in plain text.",
     );
@@ -240,10 +240,10 @@ Deno.test("login: should successfully log in a registered user", async () => {
 
     const sessionDoc = await authConcept._getActiveSession({ sessionId });
     assertExists(sessionDoc, "Session should be active in the database.");
-    assertEquals(sessionDoc.user, registeredUserId);
-    assertEquals(sessionDoc.sessionId, sessionId);
+    assertEquals(sessionDoc[0].user, registeredUserId);
+    assertEquals(sessionDoc[0].sessionId, sessionId);
     assert(
-      sessionDoc.expirationTime > Date.now(),
+      sessionDoc[0].expirationTime > Date.now(),
       "Session should have a future expiration time.",
     );
   } finally {
@@ -323,7 +323,7 @@ Deno.test("logout: should successfully delete an active session", async () => {
     const activeSession = await authConcept._getActiveSession({ sessionId });
     assertEquals(
       activeSession,
-      null,
+      [],
       "Session should no longer be active after logout.",
     );
   } finally {
@@ -365,9 +365,9 @@ Deno.test("_getActiveSession: should return the session if active", async () => 
 
     const session = await authConcept._getActiveSession({ sessionId });
     assertExists(session, "Should retrieve an active session.");
-    assertEquals(session.sessionId, sessionId);
+    assertEquals(session[0].sessionId, sessionId);
     assert(
-      session.expirationTime > Date.now(),
+      session[0].expirationTime > Date.now(),
       "Retrieved session should not be expired.",
     );
   } finally {
@@ -385,7 +385,7 @@ Deno.test("_getActiveSession: should return null if session is not found", async
     });
     assertEquals(
       session,
-      null,
+      [],
       "Should return null for a non-existent session.",
     );
   } finally {
@@ -411,7 +411,7 @@ Deno.test("_getActiveSession: should return null if session is expired", async (
     });
 
     const session = await authConcept._getActiveSession({ sessionId });
-    assertEquals(session, null, "Should return null for an expired session.");
+    assertEquals(session, [], "Should return null for an expired session.");
   } finally {
     await client.close();
   }
@@ -428,8 +428,8 @@ Deno.test("_getUserByUsername: should return the user if found", async () => {
       username: testUsername,
     });
     assertExists(user, "Should retrieve the user by username.");
-    assertEquals(user._id, userId);
-    assertEquals(user.username, testUsername);
+    assertEquals(user[0]._id, userId);
+    assertEquals(user[0].username, testUsername);
   } finally {
     await client.close();
   }
@@ -443,7 +443,7 @@ Deno.test("_getUserByUsername: should return null if user is not found", async (
     const user = await authConcept._getUserByUsername({
       username: "nonexistentuser",
     });
-    assertEquals(user, null, "Should return null for a non-existent username.");
+    assertEquals(user, [], "Should return null for a non-existent username.");
   } finally {
     await client.close();
   }
@@ -458,8 +458,8 @@ Deno.test("_getUserById: should return the user if found", async () => {
     const userId = await registerTestUser(authConcept);
     const user = await authConcept._getUserById({ userId });
     assertExists(user, "Should retrieve the user by ID.");
-    assertEquals(user._id, userId);
-    assertEquals(user.username, testUsername);
+    assertEquals(user[0]._id, userId);
+    assertEquals(user[0].username, testUsername);
   } finally {
     await client.close();
   }
@@ -472,7 +472,7 @@ Deno.test("_getUserById: should return null if user is not found", async () => {
   try {
     const nonExistentUserId = "user:fake-id-abc" as User;
     const user = await authConcept._getUserById({ userId: nonExistentUserId });
-    assertEquals(user, null, "Should return null for a non-existent user ID.");
+    assertEquals(user, [], "Should return null for a non-existent user ID.");
   } finally {
     await client.close();
   }
