@@ -71,6 +71,7 @@
 *   **Updating the LLM for Deno:** I took advantage of context's knowledge of deno to be able to turn the original code of the LLM into something more usable with Deno.
 *   **User Authentication:** Upon thinking about these concepts more as a whole application, I realized that there would be multiple users with different recipes. Changing my concepts on a larger scale to accept multiple users was a worthwhile change in the long run of the application. The authentication system is simple but allows for much more usability.
 *   **LLM Prompting:** Learning how to best prompt the LLM was a large part of working on the code for the Tips page. Since this was not implemented before I was able to use my knowledge from previously working on the prompt to create the prompt for the tips.
+*   **Consistency with getter functions:** Initially the getter functions that were meant to return one object only returned that one item but for better functionality with the front end, I changed them to return an array with one object.
 
 ### Conclusion: A More Robust and Scalable Application
 
