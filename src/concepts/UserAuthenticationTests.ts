@@ -375,7 +375,7 @@ Deno.test("_getActiveSession: should return the session if active", async () => 
   }
 });
 
-Deno.test("_getActiveSession: should return null if session is not found", async () => {
+Deno.test("_getActiveSession: should return empty list if session is not found", async () => {
   const [db, client] = await testDb();
   const authConcept = new UserAuthenticationConcept(db);
 
@@ -386,14 +386,14 @@ Deno.test("_getActiveSession: should return null if session is not found", async
     assertEquals(
       session,
       [],
-      "Should return null for a non-existent session.",
+      "Should return empty list for a non-existent session.",
     );
   } finally {
     await client.close();
   }
 });
 
-Deno.test("_getActiveSession: should return null if session is expired", async () => {
+Deno.test("_getActiveSession: should return an empty list if session is expired", async () => {
   const [db, client] = await testDb();
   const authConcept = new UserAuthenticationConcept(db);
 
@@ -411,7 +411,11 @@ Deno.test("_getActiveSession: should return null if session is expired", async (
     });
 
     const session = await authConcept._getActiveSession({ sessionId });
-    assertEquals(session, [], "Should return null for an expired session.");
+    assertEquals(
+      session,
+      [],
+      "Should return an empty list for an expired session.",
+    );
   } finally {
     await client.close();
   }
@@ -435,7 +439,7 @@ Deno.test("_getUserByUsername: should return the user if found", async () => {
   }
 });
 
-Deno.test("_getUserByUsername: should return null if user is not found", async () => {
+Deno.test("_getUserByUsername: should return an empty list if user is not found", async () => {
   const [db, client] = await testDb();
   const authConcept = new UserAuthenticationConcept(db);
 
@@ -443,7 +447,11 @@ Deno.test("_getUserByUsername: should return null if user is not found", async (
     const user = await authConcept._getUserByUsername({
       username: "nonexistentuser",
     });
-    assertEquals(user, [], "Should return null for a non-existent username.");
+    assertEquals(
+      user,
+      [],
+      "Should return an empty list for a non-existent username.",
+    );
   } finally {
     await client.close();
   }
@@ -465,14 +473,18 @@ Deno.test("_getUserById: should return the user if found", async () => {
   }
 });
 
-Deno.test("_getUserById: should return null if user is not found", async () => {
+Deno.test("_getUserById: should return an empty list if user is not found", async () => {
   const [db, client] = await testDb();
   const authConcept = new UserAuthenticationConcept(db);
 
   try {
     const nonExistentUserId = "user:fake-id-abc" as User;
     const user = await authConcept._getUserById({ userId: nonExistentUserId });
-    assertEquals(user, [], "Should return null for a non-existent user ID.");
+    assertEquals(
+      user,
+      [],
+      "Should return an empty list for a non-existent user ID.",
+    );
   } finally {
     await client.close();
   }

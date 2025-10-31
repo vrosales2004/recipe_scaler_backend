@@ -418,7 +418,7 @@ Deno.test("_getRecipeById: should return the correct recipe if it exists", async
   }
 });
 
-Deno.test("_getRecipeById: should return null if the recipe ID does not exist", async () => {
+Deno.test("_getRecipeById: should return an empty list if the recipe ID does not exist", async () => {
   const [db, client] = await testDb();
   const recipeConcept = new RecipeConcept(db);
   try {
