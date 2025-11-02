@@ -86,6 +86,20 @@ export const Engine = new SyncConcept();\n`;
   const dbImportFunc = isTest ? "testDb" : "getDb";
   const dbImport = `import { ${dbImportFunc} } from "@utils/database.ts";\n`;
 
+  // Check if we need LLM dependencies (Scaler or Tips concepts)
+  const needsLLM = concepts.some((c) => c.name === "Scaler" || c.name === "Tips");
+  const needsRecipeForScaler = concepts.some((c) => c.name === "Scaler");
+
+  // Generate additional imports if needed
+  const additionalImports = [];
+  if (needsLLM) {
+    additionalImports.push(`import { GeminiLLM } from "./../geminiLLMClient.ts";`);
+    additionalImports.push(`import "jsr:@std/dotenv/load";`);
+  }
+  const additionalImportsStr = additionalImports.length > 0
+    ? additionalImports.join("\n") + "\n"
+    : "";
+
   const conceptClassImports = concepts
     .map((c) => `import ${c.name}Concept from "${c.importPath}";`)
     .join("\n");
@@ -102,19 +116,56 @@ export const Engine = new SyncConcept();\n`;
 export const [db, client] = await ${dbImportFunc}();
 `;
 
+  // Generate dependency setup code if needed
+  let dependencySetup = "";
+  if (needsLLM || needsRecipeForScaler) {
+    const setupLines = [];
+    if (needsRecipeForScaler) {
+      setupLines.push(
+        "// Create unwrapped RecipeConcept instance for ScalerConcept dependency",
+      );
+      setupLines.push("const recipeConceptInstance = new RecipeConcept(db);");
+    }
+    if (needsLLM) {
+      setupLines.push("");
+      setupLines.push("// Get Gemini API key from environment variables");
+      setupLines.push('const geminiApiKey = Deno.env.get("GEMINI_API_KEY");');
+      setupLines.push("if (!geminiApiKey) {");
+      setupLines.push(
+        '  console.warn("WARNING: GEMINI_API_KEY is not set. ScalerConcept and TipsConcept will not work properly for AI features.");',
+      );
+      setupLines.push("}");
+      setupLines.push("");
+      setupLines.push("// Create LLM client instance");
+      setupLines.push(
+        'const llmClient = geminiApiKey ? new GeminiLLM(geminiApiKey) : { executeLLM: async (_prompt: string) => { throw new Error("LLM client not available: GEMINI_API_KEY environment variable not set"); } };',
+      );
+    }
+    dependencySetup = "\n" + setupLines.join("\n") + "\n";
+  }
+
+  // Generate instantiations with special handling for Scaler and Tips
   const instantiations = concepts
-    .map((c) =>
-      `export const ${c.name} = Engine.instrumentConcept(new ${c.name}Concept(db));`
-    )
+    .map((c) => {
+      if (c.name === "Scaler") {
+        return `export const ${c.name} = Engine.instrumentConcept(\n  new ${c.name}Concept(db, recipeConceptInstance, llmClient),\n);`;
+      } else if (c.name === "Tips") {
+        return `export const ${c.name} = Engine.instrumentConcept(new ${c.name}Concept(db, llmClient));`;
+      } else {
+        return `export const ${c.name} = Engine.instrumentConcept(new ${c.name}Concept(db));`;
+      }
+    })
     .join("\n");
 
   return [
     header,
     dbImport,
+    additionalImportsStr,
     conceptClassImports,
     "", // newline
     conceptTypeExports,
     dbInitialization,
+    dependencySetup,
     instantiations,
     "", // trailing newline
   ].join("\n");
