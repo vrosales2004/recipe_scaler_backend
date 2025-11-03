@@ -86,11 +86,11 @@ export const Engine = new SyncConcept();\n`;
   const dbImportFunc = isTest ? "testDb" : "getDb";
   const dbImport = `import { ${dbImportFunc} } from "@utils/database.ts";\n`;
 
-  // Check if we need LLM dependencies (Scaler or Tips concepts)
+  // Check if we need LLM dependencies (RecipeScaler or ScalingTips concepts)
   const needsLLM = concepts.some((c) =>
-    c.name === "Scaler" || c.name === "Tips"
+    c.name === "RecipeScaler" || c.name === "ScalingTips"
   );
-  const needsRecipeForScaler = concepts.some((c) => c.name === "Scaler");
+  const needsRecipeForScaler = concepts.some((c) => c.name === "RecipeScaler");
 
   // Generate additional imports if needed
   const additionalImports = [];
@@ -136,7 +136,7 @@ export const [db, client] = await ${dbImportFunc}();
       setupLines.push('const geminiApiKey = Deno.env.get("GEMINI_API_KEY");');
       setupLines.push("if (!geminiApiKey) {");
       setupLines.push(
-        '  console.warn("WARNING: GEMINI_API_KEY is not set. ScalerConcept and TipsConcept will not work properly for AI features.");',
+        '  console.warn("WARNING: GEMINI_API_KEY is not set. RecipeScalerConcept and ScalingTipsConcept will not work properly for AI features.");',
       );
       setupLines.push("}");
       setupLines.push("");
@@ -148,12 +148,12 @@ export const [db, client] = await ${dbImportFunc}();
     dependencySetup = "\n" + setupLines.join("\n") + "\n";
   }
 
-  // Generate instantiations with special handling for Scaler and Tips
+  // Generate instantiations with special handling for RecipeScaler and ScalingTips
   const instantiations = concepts
     .map((c) => {
-      if (c.name === "Scaler") {
+      if (c.name === "RecipeScaler") {
         return `export const ${c.name} = Engine.instrumentConcept(\n  new ${c.name}Concept(db, recipeConceptInstance, llmClient),\n);`;
-      } else if (c.name === "Tips") {
+      } else if (c.name === "ScalingTips") {
         return `export const ${c.name} = Engine.instrumentConcept(new ${c.name}Concept(db, llmClient));`;
       } else {
         return `export const ${c.name} = Engine.instrumentConcept(new ${c.name}Concept(db));`;
