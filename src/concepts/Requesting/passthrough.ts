@@ -36,7 +36,7 @@ export const inclusions: Record<string, string> = {
   "/api/Recipe/_getRecipesByAuthor": "this is a public query",
   "/api/Recipe/_getRecipeByName": "this is a public query",
   "/api/Recipe/_getRecipeById": "this is a public query",
-  "/api/Scaler/scaleManually": "this is a public query",
+  "/api/RecipeScaler/scaleManually": "this is a public query",
   "/api/RecipeScaler/scaleRecipeAI": "this is a public query",
   "/api/RecipeScaler/_getScaledRecipe": "this is a public query",
   "/api/RecipeScaler/_findScaledRecipe": "this is a public query",
