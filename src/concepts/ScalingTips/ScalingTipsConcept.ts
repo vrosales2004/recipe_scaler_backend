@@ -1,7 +1,7 @@
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
-import { ILLMClient } from "./../../geminiLLMClient.ts"; // Re-use the interface definition
+import { ILLMClient } from "../../geminiLLMClient.ts"; // Re-use the interface definition
 
 // Collection prefix to ensure namespace separation in MongoDB
 const PREFIX = "ScalingTips" + ".";

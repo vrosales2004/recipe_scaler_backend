@@ -2,7 +2,7 @@ import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 import RecipeConcept from "../Recipe/RecipeConcept.ts"; // Dependency on RecipeConcept
-import { GeminiLLM, ILLMClient } from "./../../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
+import { GeminiLLM, ILLMClient } from "../../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
 
 // Collection prefix to ensure namespace separation in MongoDB
 const PREFIX = "RecipeScaler" + ".";

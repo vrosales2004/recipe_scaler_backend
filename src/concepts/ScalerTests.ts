@@ -10,7 +10,7 @@ import { config } from "dotenv"; // Import config from dotenv
 
 // Import the concepts and LLM client interface
 import RecipeConcept from "./Recipe/RecipeConcept.ts";
-import RecipeScalerConcept from "./Scaler/ScalerConcept.ts";
+import RecipeScalerConcept from "./RecipeScaler/ScalerConcept.ts";
 import { GeminiLLM, ILLMClient } from "./../geminiLLMClient.ts"; // Import the specific Gemini LLM client and interface
 
 // Define generic ID types for consistency

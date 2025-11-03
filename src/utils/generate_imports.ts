@@ -87,13 +87,17 @@ export const Engine = new SyncConcept();\n`;
   const dbImport = `import { ${dbImportFunc} } from "@utils/database.ts";\n`;
 
   // Check if we need LLM dependencies (Scaler or Tips concepts)
-  const needsLLM = concepts.some((c) => c.name === "Scaler" || c.name === "Tips");
+  const needsLLM = concepts.some((c) =>
+    c.name === "Scaler" || c.name === "Tips"
+  );
   const needsRecipeForScaler = concepts.some((c) => c.name === "Scaler");
 
   // Generate additional imports if needed
   const additionalImports = [];
   if (needsLLM) {
-    additionalImports.push(`import { GeminiLLM } from "./../geminiLLMClient.ts";`);
+    additionalImports.push(
+      `import { GeminiLLM } from "./../geminiLLMClient.ts";`,
+    );
     additionalImports.push(`import "jsr:@std/dotenv/load";`);
   }
   const additionalImportsStr = additionalImports.length > 0
