@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "design/learning/front-end-work.md",
+                "file": "design/learning/sync-work.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "front-end-work"
+              "title": "sync-work"
             }
           }
         ]
@@ -171,6 +171,20 @@
   },
   "active": "60ccb8b74e272dda",
   "lastOpenFiles": [
+    "context/design/learning/sync-work.md/20251103_151948.e078a18d.md",
+    "context/design/learning/sync-work.md/steps/response.6d76b65d.md",
+    "context/design/learning/sync-work.md/steps/question.e885000d.md",
+    "context/design/learning/sync-work.md/steps/file.b83147db.md",
+    "context/design/learning/sync-work.md/steps/file.3589b408.md",
+    "context/design/learning/sync-work.md/20251103_151529.508b5640.md",
+    "context/design/learning/sync-work.md/steps",
+    "context/design/learning/sync-work.md",
+    "context/src/concepts/Requesting/RequestingConcept.ts/20251103_151529.3589b408.md",
+    "context/src/concepts/Requesting/RequestingConcept.ts",
+    "context/src/concepts/Requesting",
+    "design/learning/front-end-work.md",
+    "design/learning/sync-work.md",
+    "design/tools/api-extraction-from-spec.md",
     "context/design/learning/front-end-work.md/20251020_171027.7f0b06c1.md",
     "context/design/learning/front-end-work.md/steps/response.2349c7a4.md",
     "context/design/learning/front-end-work.md/20251020_170901.548c2687.md",
@@ -186,26 +200,12 @@
     "context/design/learning/front-end-work.md/steps/question.ab36aef5.md",
     "context/design/learning/front-end-work.md/steps/response.8b7279ec.md",
     "design/tips_changes.md",
-    "design/learning/front-end-work.md",
-    "context/design/learning/front-end-work.md/20251020_170304.7af6986b.md",
-    "context/design/learning/front-end-work.md/steps/response.50f682f8.md",
-    "context/design/learning/front-end-work.md/20251020_170300.59cd51fc.md",
-    "context/design/learning/front-end-work.md/steps/question.0351d5a4.md",
-    "context/design/learning/front-end-work.md/steps/response.7eef508e.md",
-    "design/scaler_changed.md",
-    "context/design/learning/front-end-work.md/20251020_140753.c9c03000.md",
-    "context/design/learning/front-end-work.md/steps/response.dbc09b9c.md",
-    "context/design/learning/front-end-work.md/20251020_140710.5396ed60.md",
-    "context/design/learning/front-end-work.md/steps/question.3ce665c9.md",
     "context/design/learning/front-end-work.md/steps",
     "design/concepts/userAuthentication.spec",
     "design/concepts/scalingTips.spec",
     "design/concepts/recipe.spec",
     "design/concepts/scaler.spec",
     "src/concepts/UserAuthenticationTests.ts",
-    "src/concepts/UserAuthenticationConcept.ts",
-    "src/concepts/UserAuthentication.ts",
-    "src/concepts/TipsTests.ts",
-    "src/geminiLLMClient.ts"
+    "src/concepts/UserAuthenticationConcept.ts"
   ]
 }

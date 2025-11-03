@@ -36,18 +36,15 @@ export const inclusions: Record<string, string> = {
   "/api/Recipe/_getRecipesByAuthor": "this is a public query",
   "/api/Recipe/_getRecipeByName": "this is a public query",
   "/api/Recipe/_getRecipeById": "this is a public query",
-  "/api/RecipeScaler/scaleManually": "this is a public query",
-  "/api/RecipeScaler/scaleRecipeAI": "this is a public query",
+  // RecipeScaler queries (read-only, safe for passthrough)
   "/api/RecipeScaler/_getScaledRecipe": "this is a public query",
   "/api/RecipeScaler/_findScaledRecipe": "this is a public query",
   "/api/RecipeScaler/_getScaledRecipesByBaseRecipe": "this is a public query",
-  "/api/RecipeScaler/createScalePrompt": "this is a public query",
-  "/api/ScalingTips/addManualScalingTip": "this is a public query",
-  "/api/ScalingTips/requestTipGeneration": "this is a public query",
-  "/api/ScalingTips/removeScalingTip": "this is a public query",
+  // ScalingTips queries (read-only, safe for passthrough)
   "/api/ScalingTips/_getScalingTipById": "this is a public query",
-  "/api/ScalingTips/createTipGenerationPrompt": "this is a public query",
   "/api/ScalingTips/_getScalingTips": "this is a public query",
+  // ScalingTips actions that don't require syncs (simple deletions)
+  "/api/ScalingTips/removeScalingTip": "this is a simple deletion action",
   "/api/UserAuthentication/register": "this is a public query",
   "/api/UserAuthentication/login": "this is a public query",
   "/api/UserAuthentication/logout": "this is a public query",
@@ -67,7 +64,17 @@ export const inclusions: Record<string, string> = {
  */
 
 export const exclusions: Array<string> = [
-  // Feel free to delete these example exclusions
+  // LikertSurvey exclusions (handled via syncs)
   "/api/LikertSurvey/createSurvey",
   "/api/LikertSurvey/addQuestion",
+  // RecipeScaler exclusions (handled via syncs)
+  "/api/RecipeScaler/scaleManually",
+  "/api/RecipeScaler/scaleRecipeAI",
+  // RecipeScaler private methods (should not be exposed)
+  "/api/RecipeScaler/createScalePrompt",
+  // ScalingTips exclusions (handled via syncs)
+  "/api/ScalingTips/addManualScalingTip",
+  "/api/ScalingTips/requestTipGeneration",
+  // ScalingTips private methods (should not be exposed)
+  "/api/ScalingTips/createTipGenerationPrompt",
 ];
