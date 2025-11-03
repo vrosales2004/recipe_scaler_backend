@@ -102,11 +102,12 @@ async function main() {
         instance = new ConceptClass(db);
       }
 
-      const conceptApiName = conceptName === "Scaler"
-        ? "RecipeScaler"
-        : conceptName === "Tips"
-        ? "ScalingTips"
-        : conceptName;
+      // const conceptApiName = conceptName === "Scaler"
+      //   ? "RecipeScaler"
+      //   : conceptName === "Tips"
+      //   ? "ScalingTips"
+      //   : conceptName;
+      const conceptApiName = conceptName;
       console.log(
         `- Registering concept: ${conceptName} at ${BASE_URL}/${conceptApiName}`,
       );
