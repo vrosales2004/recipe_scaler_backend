@@ -449,15 +449,37 @@ export const AuthenticatedRecipeDeletion: Sync = ({
     );
     // Only proceed if user is authenticated AND owns the recipe
     // Convert both to strings for comparison to handle any type mismatches
-    return withOwnership.filter(
+    console.log("[AuthenticatedRecipeDeletion] Checking ownership:");
+    console.log("  - withSession.length:", withSession.length);
+    console.log("  - withOwnership.length:", withOwnership.length);
+    const filtered = withOwnership.filter(
       (frame) => {
         const user = frame[authenticatedUser];
         const author = frame[recipeAuthor];
-        return user !== undefined &&
+        const userStr = String(user);
+        const authorStr = String(author);
+        const matches = user !== undefined &&
           author !== undefined &&
-          String(user) === String(author);
+          userStr === authorStr;
+        console.log("  - Frame check:");
+        console.log(
+          "    * authenticatedUser (from session):",
+          user,
+          "(" + typeof user + ")",
+        );
+        console.log(
+          "    * recipeAuthor (from recipe):",
+          author,
+          "(" + typeof author + ")",
+        );
+        console.log("    * String(user):", userStr);
+        console.log("    * String(author):", authorStr);
+        console.log("    * Match:", matches);
+        return matches;
       },
     );
+    console.log("  - Filtered frames.length:", filtered.length);
+    return filtered;
   },
   then: actions([Recipe.removeRecipe, { recipeId }]),
 });
@@ -558,15 +580,41 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
       return new Frames();
     }
     // Recipe exists, check if user owns it
-    const validOwnership = withRecipe.filter((frame) =>
-      frame[authenticatedUser] !== undefined &&
-      frame[recipeAuthor] !== undefined &&
-      frame[authenticatedUser] === frame[recipeAuthor]
-    );
+    console.log("[RecipeDeletionOwnershipFailure] Checking ownership:");
+    console.log("  - withSession.length:", withSession.length);
+    console.log("  - recipeId:", recipeId);
+    console.log("  - withRecipe.length:", withRecipe.length);
+    const validOwnership = withRecipe.filter((frame) => {
+      const user = frame[authenticatedUser];
+      const author = frame[recipeAuthor];
+      const userStr = String(user);
+      const authorStr = String(author);
+      const matches = user !== undefined &&
+        author !== undefined &&
+        userStr === authorStr;
+      console.log("  - Frame check:");
+      console.log(
+        "    * authenticatedUser (from session):",
+        user,
+        "(" + typeof user + ")",
+      );
+      console.log(
+        "    * recipeAuthor (from recipe):",
+        author,
+        "(" + typeof author + ")",
+      );
+      console.log("    * String(user):", userStr);
+      console.log("    * String(author):", authorStr);
+      console.log("    * Match:", matches);
+      return matches;
+    });
+    console.log("  - validOwnership.length:", validOwnership.length);
     // If no valid ownership found, but recipe exists and user is authenticated, ownership failed
     if (validOwnership.length === 0 && withRecipe.length > 0) {
+      console.log("  - Ownership FAILED - returning frames to trigger error");
       return frames; // Ownership failed - user doesn't own this recipe
     }
+    console.log("  - Ownership check passed or not applicable");
     return new Frames(); // Ownership check passed, let AuthenticatedRecipeDeletion handle
   },
   then: actions([
@@ -619,15 +667,39 @@ export const AuthenticatedScaledRecipeDeletion: Sync = ({
     );
     // Only proceed if user is authenticated AND owns the base recipe
     // Convert both to strings for comparison to handle any type mismatches
-    return withOwnership.filter(
+    console.log("[AuthenticatedScaledRecipeDeletion] Checking ownership:");
+    console.log("  - withSession.length:", withSession.length);
+    console.log("  - withScaledRecipe.length:", withScaledRecipe.length);
+    console.log("  - baseRecipeId:", baseRecipeId);
+    console.log("  - withOwnership.length:", withOwnership.length);
+    const filtered = withOwnership.filter(
       (frame) => {
         const user = frame[authenticatedUser];
         const author = frame[recipeAuthor];
-        return user !== undefined &&
+        const userStr = String(user);
+        const authorStr = String(author);
+        const matches = user !== undefined &&
           author !== undefined &&
-          String(user) === String(author);
+          userStr === authorStr;
+        console.log("  - Frame check:");
+        console.log(
+          "    * authenticatedUser (from session):",
+          user,
+          "(" + typeof user + ")",
+        );
+        console.log(
+          "    * recipeAuthor (from base recipe):",
+          author,
+          "(" + typeof author + ")",
+        );
+        console.log("    * String(user):", userStr);
+        console.log("    * String(author):", authorStr);
+        console.log("    * Match:", matches);
+        return matches;
       },
     );
+    console.log("  - Filtered frames.length:", filtered.length);
+    return filtered;
   },
   then: actions([RecipeScaler["removeScaledRecipe"], { scaledRecipeId }]),
 });
@@ -741,22 +813,50 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
     }
     // Check if user owns the base recipe
     // Convert both to strings for comparison to handle any type mismatches
+    console.log("[ScaledRecipeDeletionOwnershipFailure] Checking ownership:");
+    console.log("  - withSession.length:", withSession.length);
+    console.log("  - withScaledRecipe.length:", withScaledRecipe.length);
+    console.log("  - baseRecipeId:", baseRecipeId);
+    console.log("  - withRecipe.length:", withRecipe.length);
     const validOwnership = withRecipe.filter((frame) => {
       const user = frame[authenticatedUser];
       const author = frame[recipeAuthor];
-      return user !== undefined &&
+      const userStr = String(user);
+      const authorStr = String(author);
+      const matches = user !== undefined &&
         author !== undefined &&
-        String(user) === String(author);
+        userStr === authorStr;
+      console.log("  - Frame check:");
+      console.log(
+        "    * authenticatedUser (from session):",
+        user,
+        "(" + typeof user + ")",
+      );
+      console.log(
+        "    * recipeAuthor (from base recipe):",
+        author,
+        "(" + typeof author + ")",
+      );
+      console.log("    * String(user):", userStr);
+      console.log("    * String(author):", authorStr);
+      console.log("    * Match:", matches);
+      return matches;
     });
+    console.log("  - validOwnership.length:", validOwnership.length);
     // Only fire if: user is authenticated, recipe exists, but user does NOT own it
     // If valid ownership exists, return empty to let AuthenticatedScaledRecipeDeletion handle
     if (validOwnership.length > 0) {
+      console.log(
+        "  - Ownership is VALID - returning empty to let authenticated sync handle",
+      );
       return new Frames(); // Ownership is valid, let authenticated sync handle
     }
     // No valid ownership found, but recipe exists and user is authenticated - ownership failed
     if (withRecipe.length > 0 && withSession.length > 0) {
+      console.log("  - Ownership FAILED - returning frames to trigger error");
       return frames; // Ownership failed - user doesn't own this recipe
     }
+    console.log("  - Ownership check passed or not applicable");
     return new Frames(); // Default: don't fire
   },
   then: actions([
