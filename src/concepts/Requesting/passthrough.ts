@@ -31,8 +31,7 @@ export const inclusions: Record<string, string> = {
   "/api/LikertSurvey/_getRespondentAnswers": "answers are visible",
   "/api/LikertSurvey/submitResponse": "allow anyone to submit response",
   "/api/LikertSurvey/updateResponse": "allow anyone to update their response",
-  "/api/Recipe/addRecipe": "this is a public query",
-  "/api/Recipe/removeRecipe": "this is a public query",
+  // Recipe actions - using authenticated syncs instead
   "/api/Recipe/_getRecipesByAuthor": "this is a public query",
   "/api/Recipe/_getRecipeByName": "this is a public query",
   "/api/Recipe/_getRecipeById": "this is a public query",
@@ -40,10 +39,15 @@ export const inclusions: Record<string, string> = {
   "/api/RecipeScaler/_getScaledRecipe": "this is a public query",
   "/api/RecipeScaler/_findScaledRecipe": "this is a public query",
   "/api/RecipeScaler/_getScaledRecipesByBaseRecipe": "this is a public query",
+  // RecipeScaler actions - using authenticated syncs instead
   // ScalingTips queries (read-only, safe for passthrough)
   "/api/ScalingTips/_getScalingTipById": "this is a public query",
   "/api/ScalingTips/_getScalingTips": "this is a public query",
-  // ScalingTips actions that don't require syncs (simple deletions)
+  // ScalingTips actions - using passthrough for simple operations
+  "/api/ScalingTips/addManualScalingTip":
+    "simple action, no authentication needed",
+  "/api/ScalingTips/requestTipGeneration":
+    "can be called directly or via AutoGenerateTipsOnAIScaling sync",
   "/api/ScalingTips/removeScalingTip": "this is a simple deletion action",
   "/api/UserAuthentication/register": "this is a public query",
   "/api/UserAuthentication/login": "this is a public query",
@@ -67,14 +71,14 @@ export const exclusions: Array<string> = [
   // LikertSurvey exclusions (handled via syncs)
   "/api/LikertSurvey/createSurvey",
   "/api/LikertSurvey/addQuestion",
-  // RecipeScaler exclusions (handled via syncs)
+  // Recipe actions (handled via authenticated syncs)
+  "/api/Recipe/addRecipe",
+  "/api/Recipe/removeRecipe",
+  // RecipeScaler actions (handled via authenticated syncs)
   "/api/RecipeScaler/scaleManually",
   "/api/RecipeScaler/scaleRecipeAI",
   // RecipeScaler private methods (should not be exposed)
   "/api/RecipeScaler/createScalePrompt",
-  // ScalingTips exclusions (handled via syncs)
-  "/api/ScalingTips/addManualScalingTip",
-  "/api/ScalingTips/requestTipGeneration",
   // ScalingTips private methods (should not be exposed)
   "/api/ScalingTips/createTipGenerationPrompt",
 ];

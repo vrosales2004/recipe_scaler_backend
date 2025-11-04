@@ -56,101 +56,7 @@ export const AddQuestionResponse: Sync = ({ request, question }) => ({
 });
 
 // ===== RecipeScaler Syncs =====
-
-export const ScaleManuallyRequest: Sync = (
-  { request, baseRecipeId, targetServings },
-) => ({
-  when: actions([
-    Requesting.request,
-    { path: "/RecipeScaler/scaleManually", baseRecipeId, targetServings },
-    { request },
-  ]),
-  then: actions([RecipeScaler.scaleManually, { baseRecipeId, targetServings }]),
-});
-
-export const ScaleManuallyResponse: Sync = ({ request, scaledRecipeId }) => ({
-  when: actions(
-    [Requesting.request, { path: "/RecipeScaler/scaleManually" }, { request }],
-    [RecipeScaler.scaleManually, {}, { scaledRecipeId }],
-  ),
-  then: actions([Requesting.respond, { request, scaledRecipeId }]),
-});
-
-export const ScaleRecipeAIRequest: Sync = (
-  { request, baseRecipeId, targetServings },
-) => ({
-  when: actions([
-    Requesting.request,
-    { path: "/RecipeScaler/scaleRecipeAI", baseRecipeId, targetServings },
-    { request },
-  ]),
-  then: actions([RecipeScaler.scaleRecipeAI, { baseRecipeId, targetServings }]),
-});
-
-export const ScaleRecipeAIResponse: Sync = ({ request, scaledRecipeId }) => ({
-  when: actions(
-    [Requesting.request, { path: "/RecipeScaler/scaleRecipeAI" }, { request }],
-    [RecipeScaler.scaleRecipeAI, {}, { scaledRecipeId }],
-  ),
-  then: actions([Requesting.respond, { request, scaledRecipeId }]),
-});
-
-// ===== ScalingTips Syncs =====
-
-export const AddManualScalingTipRequest: Sync = (
-  { request, cookingMethod, direction, tipText, addedBy },
-) => ({
-  when: actions([
-    Requesting.request,
-    {
-      path: "/ScalingTips/addManualScalingTip",
-      cookingMethod,
-      direction,
-      tipText,
-      addedBy,
-    },
-    { request },
-  ]),
-  then: actions([
-    ScalingTips.addManualScalingTip,
-    { cookingMethod, direction, tipText, addedBy },
-  ]),
-});
-
-export const AddManualScalingTipResponse: Sync = ({ request, tipId }) => ({
-  when: actions(
-    [
-      Requesting.request,
-      { path: "/ScalingTips/addManualScalingTip" },
-      { request },
-    ],
-    [ScalingTips.addManualScalingTip, {}, { tipId }],
-  ),
-  then: actions([Requesting.respond, { request, tipId }]),
-});
-
-export const RequestTipGenerationRequest: Sync = (
-  { request, recipeContext },
-) => ({
-  when: actions([
-    Requesting.request,
-    { path: "/ScalingTips/requestTipGeneration", recipeContext },
-    { request },
-  ]),
-  then: actions([ScalingTips.requestTipGeneration, { recipeContext }]),
-});
-
-export const RequestTipGenerationResponse: Sync = ({ request, tipIds }) => ({
-  when: actions(
-    [
-      Requesting.request,
-      { path: "/ScalingTips/requestTipGeneration" },
-      { request },
-    ],
-    [ScalingTips.requestTipGeneration, {}, { tipIds }],
-  ),
-  then: actions([Requesting.respond, { request, tipIds }]),
-});
+// Simple request/response syncs removed - using passthrough or complex authenticated syncs instead
 
 // ===== Complex Syncs with Where Clauses =====
 
@@ -182,10 +88,11 @@ export const AuthenticatedRecipeCreation: Sync = ({
   ]),
   where: async (frames: Frames) => {
     // Validate session and extract user
+    // SessionDoc has 'user' property, map it to authenticatedUser symbol
     const withSession = await frames.queryAsync(
       UserAuthentication._getActiveSession,
       { sessionId },
-      { authenticatedUser },
+      { user: authenticatedUser },
     );
     // Only proceed if session is valid (user is authenticated)
     return withSession.filter((frame) =>
@@ -238,17 +145,23 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
   ]),
   where: async (frames: Frames) => {
     // Get the scaled recipe to extract baseRecipeId and targetServings
-    // Then get the base recipe details to build recipe context
+    // ScaledRecipeDoc has 'baseRecipeId' and 'targetServings' properties
     const withScaledRecipe = await frames.queryAsync(
       RecipeScaler._getScaledRecipe,
       { scaledRecipeId },
       { baseRecipeId, targetServings },
     );
     // For each scaled recipe, get the base recipe details
+    // RecipeDoc has 'name', 'originalServings', 'ingredients', 'cookingMethods' properties
     const withRecipe = await withScaledRecipe.queryAsync(
       Recipe._getRecipeById,
       { recipeId: baseRecipeId },
-      { recipeName, originalServings, ingredients, cookingMethods },
+      {
+        name: recipeName,
+        originalServings,
+        ingredients,
+        cookingMethods,
+      },
     );
     return withRecipe;
   },
@@ -291,10 +204,11 @@ export const AuthenticatedScaling: Sync = ({
   ]),
   where: async (frames: Frames) => {
     // Validate session and extract user
+    // SessionDoc has 'user' property, map it to authenticatedUser symbol
     const withSession = await frames.queryAsync(
       UserAuthentication._getActiveSession,
       { sessionId },
-      { authenticatedUser },
+      { user: authenticatedUser },
     );
     // Only proceed if session is valid
     return withSession.filter((frame) =>
@@ -305,6 +219,68 @@ export const AuthenticatedScaling: Sync = ({
     RecipeScaler.scaleManually,
     { baseRecipeId, targetServings },
   ]),
+});
+
+export const AuthenticatedScalingResponse: Sync = ({
+  request,
+  scaledRecipeId,
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/RecipeScaler/scaleManually" }, { request }],
+    [RecipeScaler.scaleManually, {}, { scaledRecipeId }],
+  ),
+  then: actions([Requesting.respond, { request, scaledRecipeId }]),
+});
+
+/**
+ * Authenticated AI Scaling
+ * Validates session and then triggers AI scaling.
+ */
+export const AuthenticatedAIScaling: Sync = ({
+  request,
+  sessionId,
+  baseRecipeId,
+  targetServings,
+  authenticatedUser,
+}) => ({
+  when: actions([
+    Requesting.request,
+    {
+      path: "/RecipeScaler/scaleRecipeAI",
+      sessionId,
+      baseRecipeId,
+      targetServings,
+    },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // Validate session and extract user
+    // SessionDoc has 'user' property, map it to authenticatedUser symbol
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      { user: authenticatedUser },
+    );
+    // Only proceed if session is valid
+    return withSession.filter((frame) =>
+      frame[authenticatedUser] !== undefined
+    );
+  },
+  then: actions([
+    RecipeScaler.scaleRecipeAI,
+    { baseRecipeId, targetServings },
+  ]),
+});
+
+export const AuthenticatedAIScalingResponse: Sync = ({
+  request,
+  scaledRecipeId,
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/RecipeScaler/scaleRecipeAI" }, { request }],
+    [RecipeScaler.scaleRecipeAI, {}, { scaledRecipeId }],
+  ),
+  then: actions([Requesting.respond, { request, scaledRecipeId }]),
 });
 
 /**
@@ -326,16 +302,18 @@ export const AuthenticatedRecipeDeletion: Sync = ({
   ]),
   where: async (frames: Frames) => {
     // First validate session
+    // SessionDoc has 'user' property, map it to authenticatedUser symbol
     const withSession = await frames.queryAsync(
       UserAuthentication._getActiveSession,
       { sessionId },
-      { authenticatedUser },
+      { user: authenticatedUser },
     );
     // Then check recipe ownership
+    // RecipeDoc has 'author' property, map it to recipeAuthor symbol
     const withOwnership = await withSession.queryAsync(
       Recipe._getRecipeById,
       { recipeId },
-      { recipeAuthor },
+      { author: recipeAuthor },
     );
     // Only proceed if user is authenticated AND owns the recipe
     return withOwnership.filter(
