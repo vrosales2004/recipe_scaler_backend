@@ -448,10 +448,15 @@ export const AuthenticatedRecipeDeletion: Sync = ({
       { author: recipeAuthor },
     );
     // Only proceed if user is authenticated AND owns the recipe
+    // Convert both to strings for comparison to handle any type mismatches
     return withOwnership.filter(
-      (frame) =>
-        frame[authenticatedUser] !== undefined &&
-        frame[recipeAuthor] === frame[authenticatedUser],
+      (frame) => {
+        const user = frame[authenticatedUser];
+        const author = frame[recipeAuthor];
+        return user !== undefined &&
+          author !== undefined &&
+          String(user) === String(author);
+      },
     );
   },
   then: actions([Recipe.removeRecipe, { recipeId }]),
@@ -613,11 +618,15 @@ export const AuthenticatedScaledRecipeDeletion: Sync = ({
       { author: recipeAuthor },
     );
     // Only proceed if user is authenticated AND owns the base recipe
+    // Convert both to strings for comparison to handle any type mismatches
     return withOwnership.filter(
-      (frame) =>
-        frame[authenticatedUser] !== undefined &&
-        frame[recipeAuthor] !== undefined &&
-        frame[recipeAuthor] === frame[authenticatedUser],
+      (frame) => {
+        const user = frame[authenticatedUser];
+        const author = frame[recipeAuthor];
+        return user !== undefined &&
+          author !== undefined &&
+          String(user) === String(author);
+      },
     );
   },
   then: actions([RecipeScaler["removeScaledRecipe"], { scaledRecipeId }]),
@@ -731,11 +740,14 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
       return new Frames();
     }
     // Check if user owns the base recipe
-    const validOwnership = withRecipe.filter((frame) =>
-      frame[authenticatedUser] !== undefined &&
-      frame[recipeAuthor] !== undefined &&
-      frame[authenticatedUser] === frame[recipeAuthor]
-    );
+    // Convert both to strings for comparison to handle any type mismatches
+    const validOwnership = withRecipe.filter((frame) => {
+      const user = frame[authenticatedUser];
+      const author = frame[recipeAuthor];
+      return user !== undefined &&
+        author !== undefined &&
+        String(user) === String(author);
+    });
     // Only fire if: user is authenticated, recipe exists, but user does NOT own it
     // If valid ownership exists, return empty to let AuthenticatedScaledRecipeDeletion handle
     if (validOwnership.length > 0) {
