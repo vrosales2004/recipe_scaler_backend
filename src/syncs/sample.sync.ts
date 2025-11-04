@@ -180,6 +180,7 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
   originalServings,
   ingredients,
   cookingMethods,
+  recipeContext,
 }) => ({
   when: actions([
     RecipeScaler.scaleRecipeAI,
@@ -214,7 +215,8 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
       console.log("[AutoGenerateTipsOnAIScaling] No base recipe found");
       return new Frames();
     }
-    // Validate all required fields are present
+    // Construct recipeContext object from frame values and add to frames
+    const resultFrames = new Frames();
     for (const frame of withRecipe) {
       const hasBaseRecipeId = frame[baseRecipeId] !== undefined;
       const hasTargetServings = frame[targetServings] !== undefined;
@@ -222,33 +224,7 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
       const hasOriginalServings = frame[originalServings] !== undefined;
       const hasIngredients = Array.isArray(frame[ingredients]);
       const hasCookingMethods = Array.isArray(frame[cookingMethods]);
-      console.log("[AutoGenerateTipsOnAIScaling] Validating recipe context:");
-      console.log("  - baseRecipeId:", hasBaseRecipeId, frame[baseRecipeId]);
-      console.log(
-        "  - targetServings:",
-        hasTargetServings,
-        frame[targetServings],
-      );
-      console.log("  - recipeName:", hasRecipeName, frame[recipeName]);
-      console.log(
-        "  - originalServings:",
-        hasOriginalServings,
-        frame[originalServings],
-      );
-      const ingredientsValue = frame[ingredients];
-      const cookingMethodsValue = frame[cookingMethods];
-      const ingredientsLength = Array.isArray(ingredientsValue)
-        ? ingredientsValue.length
-        : 0;
-      const cookingMethodsLength = Array.isArray(cookingMethodsValue)
-        ? cookingMethodsValue.length
-        : 0;
-      console.log("  - ingredients:", hasIngredients, ingredientsLength);
-      console.log(
-        "  - cookingMethods:",
-        hasCookingMethods,
-        cookingMethodsLength,
-      );
+
       if (
         !hasBaseRecipeId || !hasTargetServings || !hasRecipeName ||
         !hasOriginalServings || !hasIngredients || !hasCookingMethods
@@ -256,23 +232,28 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
         console.log(
           "[AutoGenerateTipsOnAIScaling] Missing required fields, skipping",
         );
-        return new Frames();
+        continue;
       }
+
+      // Construct recipeContext object with actual values from frame
+      const contextValue = {
+        recipeId: frame[baseRecipeId],
+        name: frame[recipeName],
+        originalServings: frame[originalServings],
+        targetServings: frame[targetServings],
+        ingredients: frame[ingredients],
+        cookingMethods: frame[cookingMethods],
+      };
+
+      // Add recipeContext to frame
+      const newFrame = { ...frame, [recipeContext]: contextValue };
+      resultFrames.push(newFrame);
     }
-    return withRecipe;
+    return resultFrames;
   },
   then: actions([
     ScalingTips.requestTipGeneration,
-    {
-      recipeContext: {
-        recipeId: baseRecipeId,
-        name: recipeName,
-        originalServings,
-        targetServings,
-        ingredients,
-        cookingMethods,
-      },
-    },
+    { recipeContext },
   ]),
 });
 
