@@ -77,6 +77,7 @@ export const exclusions: Array<string> = [
   // RecipeScaler actions (handled via authenticated syncs)
   "/api/RecipeScaler/scaleManually",
   "/api/RecipeScaler/scaleRecipeAI",
+  "/api/RecipeScaler/removeScaledRecipe",
   // RecipeScaler private methods (should not be exposed)
   "/api/RecipeScaler/createScalePrompt",
   // ScalingTips private methods (should not be exposed)

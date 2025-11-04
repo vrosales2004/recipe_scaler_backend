@@ -572,3 +572,187 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
     },
   ]),
 });
+
+// ===== Scaled Recipe Deletion Syncs =====
+
+/**
+ * Authenticated Scaled Recipe Deletion
+ * Validates that the user owns the base recipe before allowing deletion of a scaled recipe.
+ * Requires both session validation and base recipe ownership check.
+ */
+export const AuthenticatedScaledRecipeDeletion: Sync = ({
+  request,
+  sessionId,
+  scaledRecipeId,
+  authenticatedUser,
+  baseRecipeId,
+  recipeAuthor,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/RecipeScaler/removeScaledRecipe", sessionId, scaledRecipeId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // First validate session
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      { user: authenticatedUser },
+    );
+    // Then get the scaled recipe to find the base recipe ID
+    const withScaledRecipe = await withSession.queryAsync(
+      RecipeScaler._getScaledRecipe,
+      { scaledRecipeId },
+      { baseRecipeId },
+    );
+    // Then check base recipe ownership
+    const withOwnership = await withScaledRecipe.queryAsync(
+      Recipe._getRecipeById,
+      { recipeId: baseRecipeId },
+      { author: recipeAuthor },
+    );
+    // Only proceed if user is authenticated AND owns the base recipe
+    return withOwnership.filter(
+      (frame) =>
+        frame[authenticatedUser] !== undefined &&
+        frame[recipeAuthor] !== undefined &&
+        frame[recipeAuthor] === frame[authenticatedUser],
+    );
+  },
+  then: actions([RecipeScaler["removeScaledRecipe"], { scaledRecipeId }]),
+});
+
+export const AuthenticatedScaledRecipeDeletionResponse: Sync = ({
+  request,
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/RecipeScaler/removeScaledRecipe" }, {
+      request,
+    }],
+    [RecipeScaler["removeScaledRecipe"], {}, {}],
+  ),
+  then: actions([Requesting.respond, { request }]),
+});
+
+/**
+ * Error response for scaled recipe deletion (when action returns error)
+ */
+export const ScaledRecipeDeletionErrorResponse: Sync = ({
+  request,
+  error,
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/RecipeScaler/removeScaledRecipe" }, {
+      request,
+    }],
+    [RecipeScaler["removeScaledRecipe"], {}, { error }],
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+/**
+ * Authentication Failure Response for Scaled Recipe Deletion
+ * Responds with an error when authentication fails for scaled recipe deletion requests.
+ */
+export const ScaledRecipeDeletionAuthenticationFailure: Sync = ({
+  request,
+  sessionId,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/RecipeScaler/removeScaledRecipe", sessionId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      {},
+    );
+    if (withSession.length === 0 && frames.length > 0) {
+      return frames; // Authentication failed
+    }
+    return new Frames(); // Authentication succeeded
+  },
+  then: actions([
+    Requesting.respond,
+    { request, error: "Authentication failed: Invalid or expired session." },
+  ]),
+});
+
+/**
+ * Ownership Failure Response for Scaled Recipe Deletion
+ * Responds with an error when the user doesn't own the base recipe.
+ */
+export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
+  request,
+  sessionId,
+  scaledRecipeId,
+  authenticatedUser,
+  baseRecipeId,
+  recipeAuthor,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/RecipeScaler/removeScaledRecipe", sessionId, scaledRecipeId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // First check if session is valid
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      { user: authenticatedUser },
+    );
+    // If no session, let authentication failure handler take care of it
+    if (withSession.length === 0) {
+      return new Frames();
+    }
+    // Session is valid, get the scaled recipe to find base recipe
+    const withScaledRecipe = await withSession.queryAsync(
+      RecipeScaler._getScaledRecipe,
+      { scaledRecipeId },
+      { baseRecipeId },
+    );
+    // If scaled recipe doesn't exist, don't fire ownership failure
+    // (Either it never existed, or deletion already succeeded)
+    if (withScaledRecipe.length === 0) {
+      return new Frames();
+    }
+    // Get the base recipe and check ownership
+    const withRecipe = await withScaledRecipe.queryAsync(
+      Recipe._getRecipeById,
+      { recipeId: baseRecipeId },
+      { author: recipeAuthor },
+    );
+    // If base recipe doesn't exist, don't fire ownership failure
+    if (withRecipe.length === 0) {
+      return new Frames();
+    }
+    // Check if user owns the base recipe
+    const validOwnership = withRecipe.filter((frame) =>
+      frame[authenticatedUser] !== undefined &&
+      frame[recipeAuthor] !== undefined &&
+      frame[authenticatedUser] === frame[recipeAuthor]
+    );
+    // Only fire if: user is authenticated, recipe exists, but user does NOT own it
+    // If valid ownership exists, return empty to let AuthenticatedScaledRecipeDeletion handle
+    if (validOwnership.length > 0) {
+      return new Frames(); // Ownership is valid, let authenticated sync handle
+    }
+    // No valid ownership found, but recipe exists and user is authenticated - ownership failed
+    if (withRecipe.length > 0 && withSession.length > 0) {
+      return frames; // Ownership failed - user doesn't own this recipe
+    }
+    return new Frames(); // Default: don't fire
+  },
+  then: actions([
+    Requesting.respond,
+    {
+      request,
+      error:
+        "Permission denied: You can only delete scaled recipes for your own recipes.",
+    },
+  ]),
+});

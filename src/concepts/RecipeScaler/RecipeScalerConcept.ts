@@ -381,4 +381,26 @@ export default class RecipeScalerConcept {
   ): Promise<ScaledRecipeDoc[]> {
     return await this.scaledRecipes.find({ baseRecipeId }).toArray();
   }
+
+  /**
+   * Action: Removes a scaled recipe from the database.
+   *
+   * @param {Object} params - The parameters for removing a scaled recipe.
+   * @param {ScaledRecipe} params.scaledRecipeId - The ID of the scaled recipe to remove.
+   * @returns {Promise<Empty | {error: string}>} Empty object on success, or an error message.
+   *
+   * @requires The scaledRecipeId must exist in the RecipeScaler concept.
+   * @effects The scaled recipe document is deleted from the 'scaledRecipes' collection.
+   */
+  async removeScaledRecipe(
+    { scaledRecipeId }: { scaledRecipeId: ScaledRecipe },
+  ): Promise<Empty | { error: string }> {
+    // Precondition: The scaled recipe with scaledRecipeId must exist (implied by checking deletion count)
+    const result = await this.scaledRecipes.deleteOne({ _id: scaledRecipeId });
+    if (result.deletedCount === 0) {
+      return { error: `Scaled recipe with ID ${scaledRecipeId} not found.` };
+    }
+
+    return {}; // Success
+  }
 }
