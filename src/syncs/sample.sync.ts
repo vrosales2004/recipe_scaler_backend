@@ -194,6 +194,10 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
       { scaledRecipeId },
       { baseRecipeId, targetServings },
     );
+    if (withScaledRecipe.length === 0) {
+      console.log("[AutoGenerateTipsOnAIScaling] No scaled recipe found");
+      return new Frames();
+    }
     // For each scaled recipe, get the base recipe details
     // RecipeDoc has 'name', 'originalServings', 'ingredients', 'cookingMethods' properties
     const withRecipe = await withScaledRecipe.queryAsync(
@@ -206,6 +210,55 @@ export const AutoGenerateTipsOnAIScaling: Sync = ({
         cookingMethods,
       },
     );
+    if (withRecipe.length === 0) {
+      console.log("[AutoGenerateTipsOnAIScaling] No base recipe found");
+      return new Frames();
+    }
+    // Validate all required fields are present
+    for (const frame of withRecipe) {
+      const hasBaseRecipeId = frame[baseRecipeId] !== undefined;
+      const hasTargetServings = frame[targetServings] !== undefined;
+      const hasRecipeName = frame[recipeName] !== undefined;
+      const hasOriginalServings = frame[originalServings] !== undefined;
+      const hasIngredients = Array.isArray(frame[ingredients]);
+      const hasCookingMethods = Array.isArray(frame[cookingMethods]);
+      console.log("[AutoGenerateTipsOnAIScaling] Validating recipe context:");
+      console.log("  - baseRecipeId:", hasBaseRecipeId, frame[baseRecipeId]);
+      console.log(
+        "  - targetServings:",
+        hasTargetServings,
+        frame[targetServings],
+      );
+      console.log("  - recipeName:", hasRecipeName, frame[recipeName]);
+      console.log(
+        "  - originalServings:",
+        hasOriginalServings,
+        frame[originalServings],
+      );
+      const ingredientsValue = frame[ingredients];
+      const cookingMethodsValue = frame[cookingMethods];
+      const ingredientsLength = Array.isArray(ingredientsValue)
+        ? ingredientsValue.length
+        : 0;
+      const cookingMethodsLength = Array.isArray(cookingMethodsValue)
+        ? cookingMethodsValue.length
+        : 0;
+      console.log("  - ingredients:", hasIngredients, ingredientsLength);
+      console.log(
+        "  - cookingMethods:",
+        hasCookingMethods,
+        cookingMethodsLength,
+      );
+      if (
+        !hasBaseRecipeId || !hasTargetServings || !hasRecipeName ||
+        !hasOriginalServings || !hasIngredients || !hasCookingMethods
+      ) {
+        console.log(
+          "[AutoGenerateTipsOnAIScaling] Missing required fields, skipping",
+        );
+        return new Frames();
+      }
+    }
     return withRecipe;
   },
   then: actions([
