@@ -56,9 +56,6 @@ export const AddQuestionResponse: Sync = ({ request, question }) => ({
 });
 
 // ===== RecipeScaler Syncs =====
-// Simple request/response syncs removed - using passthrough or complex authenticated syncs instead
-
-// ===== Complex Syncs with Where Clauses =====
 
 /**
  * Authenticated Recipe Creation
@@ -120,6 +117,52 @@ export const AuthenticatedRecipeCreationResponse: Sync = ({
     [Recipe.addRecipe, {}, { recipe }],
   ),
   then: actions([Requesting.respond, { request, recipe }]),
+});
+
+/**
+ * Error response for recipe creation (when action returns error)
+ */
+export const RecipeCreationErrorResponse: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/addRecipe" }, { request }],
+    [Recipe.addRecipe, {}, { error }],
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+/**
+ * Authentication Failure Response for Recipe Creation
+ * Responds with an error when authentication fails for recipe creation requests.
+ * This prevents timeouts when sessionId is invalid or missing.
+ */
+export const RecipeCreationAuthenticationFailure: Sync = ({
+  request,
+  sessionId,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/addRecipe", sessionId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // For each frame, check if session is valid
+    // If query returns empty, authentication failed
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      {},
+    );
+    // If no valid sessions found, authentication failed - return frames to trigger error
+    // If sessions found, authentication succeeded - return empty to let other sync handle
+    if (withSession.length === 0 && frames.length > 0) {
+      return frames; // Authentication failed
+    }
+    return new Frames(); // Authentication succeeded, let AuthenticatedRecipeCreation handle
+  },
+  then: actions([
+    Requesting.respond,
+    { request, error: "Authentication failed: Invalid or expired session." },
+  ]),
 });
 
 /**
@@ -420,4 +463,106 @@ export const AuthenticatedRecipeDeletionResponse: Sync = ({ request }) => ({
     [Recipe.removeRecipe, {}, {}],
   ),
   then: actions([Requesting.respond, { request }]),
+});
+
+/**
+ * Error response for recipe deletion (when action returns error)
+ */
+export const RecipeDeletionErrorResponse: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/removeRecipe" }, { request }],
+    [Recipe.removeRecipe, {}, { error }],
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+/**
+ * Authentication Failure Response for Recipe Deletion
+ * Responds with an error when authentication fails for recipe deletion requests.
+ * This prevents timeouts when sessionId is invalid or missing.
+ */
+export const RecipeDeletionAuthenticationFailure: Sync = ({
+  request,
+  sessionId,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/removeRecipe", sessionId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // For each frame, check if session is valid
+    // If query returns empty, authentication failed
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      {},
+    );
+    // If no valid sessions found, authentication failed - return frames to trigger error
+    // If sessions found, authentication succeeded - return empty to let other sync handle
+    if (withSession.length === 0 && frames.length > 0) {
+      return frames; // Authentication failed
+    }
+    return new Frames(); // Authentication succeeded, let AuthenticatedRecipeDeletion handle
+  },
+  then: actions([
+    Requesting.respond,
+    { request, error: "Authentication failed: Invalid or expired session." },
+  ]),
+});
+
+/**
+ * Ownership Failure Response for Recipe Deletion
+ * Responds with an error when the user doesn't own the recipe they're trying to delete.
+ * This prevents timeouts when ownership check fails.
+ */
+export const RecipeDeletionOwnershipFailure: Sync = ({
+  request,
+  sessionId,
+  recipeId,
+  authenticatedUser,
+  recipeAuthor,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/removeRecipe", sessionId, recipeId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // First check if session is valid
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      { user: authenticatedUser },
+    );
+    // If no session, let authentication failure handler take care of it
+    if (withSession.length === 0) {
+      return new Frames();
+    }
+    // Session is valid, now check ownership
+    const withOwnership = await withSession.queryAsync(
+      Recipe._getRecipeById,
+      { recipeId },
+      { author: recipeAuthor },
+    );
+    // Check if user owns the recipe
+    // If ownership check returns empty OR user doesn't match author, ownership failed
+    const validOwnership = withOwnership.filter((frame) =>
+      frame[authenticatedUser] !== undefined &&
+      frame[recipeAuthor] !== undefined &&
+      frame[authenticatedUser] === frame[recipeAuthor]
+    );
+    // If no valid ownership found, but we have authenticated frames, ownership failed
+    if (validOwnership.length === 0 && withSession.length > 0) {
+      return frames; // Ownership failed
+    }
+    return new Frames(); // Ownership check passed, let AuthenticatedRecipeDeletion handle
+  },
+  then: actions([
+    Requesting.respond,
+    {
+      request,
+      error: "Permission denied: You can only delete your own recipes.",
+    },
+  ]),
 });
