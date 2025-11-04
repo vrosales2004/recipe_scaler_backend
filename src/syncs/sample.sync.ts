@@ -448,38 +448,63 @@ export const AuthenticatedRecipeDeletion: Sync = ({
       { author: recipeAuthor },
     );
     // Only proceed if user is authenticated AND owns the recipe
-    // Convert both to strings for comparison to handle any type mismatches
+    // Handle both cases: author stored as user ID or username
     console.log("[AuthenticatedRecipeDeletion] Checking ownership:");
     console.log("  - withSession.length:", withSession.length);
     console.log("  - withOwnership.length:", withOwnership.length);
-    const filtered = withOwnership.filter(
-      (frame) => {
-        const user = frame[authenticatedUser];
-        const author = frame[recipeAuthor];
-        const userStr = String(user);
-        const authorStr = String(author);
-        const matches = user !== undefined &&
-          author !== undefined &&
-          userStr === authorStr;
-        console.log("  - Frame check:");
-        console.log(
-          "    * authenticatedUser (from session):",
-          user,
-          "(" + typeof user + ")",
+
+    // Check each frame for ownership
+    const filteredFrames = new Frames();
+    for (const frame of withOwnership) {
+      const user = frame[authenticatedUser];
+      const author = frame[recipeAuthor];
+      const userStr = String(user);
+      const authorStr = String(author);
+
+      // Direct ID match
+      if (userStr === authorStr) {
+        console.log("  - Frame check: Direct ID match");
+        filteredFrames.push(frame);
+        continue;
+      }
+
+      // If author looks like a username (not a UUID), check if user ID matches username
+      // UUIDs typically have format: 019a0979-53f6-7ed1-af02-1403d5fb9c19
+      const isUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          authorStr,
         );
-        console.log(
-          "    * recipeAuthor (from recipe):",
-          author,
-          "(" + typeof author + ")",
-        );
-        console.log("    * String(user):", userStr);
-        console.log("    * String(author):", authorStr);
-        console.log("    * Match:", matches);
-        return matches;
-      },
-    );
-    console.log("  - Filtered frames.length:", filtered.length);
-    return filtered;
+      if (!isUUID && typeof author === "string") {
+        // Author is a username, get user ID from username
+        const userByUsername = await UserAuthentication._getUserByUsername({
+          username: authorStr,
+        });
+        if (
+          userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
+        ) {
+          console.log("  - Frame check: Username match (author is username)");
+          filteredFrames.push(frame);
+          continue;
+        }
+      }
+
+      console.log("  - Frame check:");
+      console.log(
+        "    * authenticatedUser (from session):",
+        user,
+        "(" + typeof user + ")",
+      );
+      console.log(
+        "    * recipeAuthor (from recipe):",
+        author,
+        "(" + typeof author + ")",
+      );
+      console.log("    * String(user):", userStr);
+      console.log("    * String(author):", authorStr);
+      console.log("    * Match: false");
+    }
+    console.log("  - Filtered frames.length:", filteredFrames.length);
+    return filteredFrames;
   },
   then: actions([Recipe.removeRecipe, { recipeId }]),
 });
@@ -584,14 +609,41 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
     console.log("  - withSession.length:", withSession.length);
     console.log("  - recipeId:", recipeId);
     console.log("  - withRecipe.length:", withRecipe.length);
-    const validOwnership = withRecipe.filter((frame) => {
+
+    // Check each frame for ownership
+    let validOwnershipCount = 0;
+    for (const frame of withRecipe) {
       const user = frame[authenticatedUser];
       const author = frame[recipeAuthor];
       const userStr = String(user);
       const authorStr = String(author);
-      const matches = user !== undefined &&
-        author !== undefined &&
-        userStr === authorStr;
+
+      // Direct ID match
+      if (userStr === authorStr) {
+        console.log("  - Frame check: Direct ID match");
+        validOwnershipCount++;
+        continue;
+      }
+
+      // If author looks like a username (not a UUID), check if user ID matches username
+      const isUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          authorStr,
+        );
+      if (!isUUID && typeof author === "string") {
+        // Author is a username, get user ID from username
+        const userByUsername = await UserAuthentication._getUserByUsername({
+          username: authorStr,
+        });
+        if (
+          userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
+        ) {
+          console.log("  - Frame check: Username match (author is username)");
+          validOwnershipCount++;
+          continue;
+        }
+      }
+
       console.log("  - Frame check:");
       console.log(
         "    * authenticatedUser (from session):",
@@ -605,12 +657,11 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
       );
       console.log("    * String(user):", userStr);
       console.log("    * String(author):", authorStr);
-      console.log("    * Match:", matches);
-      return matches;
-    });
-    console.log("  - validOwnership.length:", validOwnership.length);
+      console.log("    * Match: false");
+    }
+    console.log("  - validOwnership.length:", validOwnershipCount);
     // If no valid ownership found, but recipe exists and user is authenticated, ownership failed
-    if (validOwnership.length === 0 && withRecipe.length > 0) {
+    if (validOwnershipCount === 0 && withRecipe.length > 0) {
       console.log("  - Ownership FAILED - returning frames to trigger error");
       return frames; // Ownership failed - user doesn't own this recipe
     }
@@ -666,40 +717,64 @@ export const AuthenticatedScaledRecipeDeletion: Sync = ({
       { author: recipeAuthor },
     );
     // Only proceed if user is authenticated AND owns the base recipe
-    // Convert both to strings for comparison to handle any type mismatches
+    // Handle both cases: author stored as user ID or username
     console.log("[AuthenticatedScaledRecipeDeletion] Checking ownership:");
     console.log("  - withSession.length:", withSession.length);
     console.log("  - withScaledRecipe.length:", withScaledRecipe.length);
     console.log("  - baseRecipeId:", baseRecipeId);
     console.log("  - withOwnership.length:", withOwnership.length);
-    const filtered = withOwnership.filter(
-      (frame) => {
-        const user = frame[authenticatedUser];
-        const author = frame[recipeAuthor];
-        const userStr = String(user);
-        const authorStr = String(author);
-        const matches = user !== undefined &&
-          author !== undefined &&
-          userStr === authorStr;
-        console.log("  - Frame check:");
-        console.log(
-          "    * authenticatedUser (from session):",
-          user,
-          "(" + typeof user + ")",
+
+    // Check each frame for ownership
+    const filteredFrames = new Frames();
+    for (const frame of withOwnership) {
+      const user = frame[authenticatedUser];
+      const author = frame[recipeAuthor];
+      const userStr = String(user);
+      const authorStr = String(author);
+
+      // Direct ID match
+      if (userStr === authorStr) {
+        console.log("  - Frame check: Direct ID match");
+        filteredFrames.push(frame);
+        continue;
+      }
+
+      // If author looks like a username (not a UUID), check if user ID matches username
+      const isUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          authorStr,
         );
-        console.log(
-          "    * recipeAuthor (from base recipe):",
-          author,
-          "(" + typeof author + ")",
-        );
-        console.log("    * String(user):", userStr);
-        console.log("    * String(author):", authorStr);
-        console.log("    * Match:", matches);
-        return matches;
-      },
-    );
-    console.log("  - Filtered frames.length:", filtered.length);
-    return filtered;
+      if (!isUUID && typeof author === "string") {
+        // Author is a username, get user ID from username
+        const userByUsername = await UserAuthentication._getUserByUsername({
+          username: authorStr,
+        });
+        if (
+          userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
+        ) {
+          console.log("  - Frame check: Username match (author is username)");
+          filteredFrames.push(frame);
+          continue;
+        }
+      }
+
+      console.log("  - Frame check:");
+      console.log(
+        "    * authenticatedUser (from session):",
+        user,
+        "(" + typeof user + ")",
+      );
+      console.log(
+        "    * recipeAuthor (from base recipe):",
+        author,
+        "(" + typeof author + ")",
+      );
+      console.log("    * String(user):", userStr);
+      console.log("    * String(author):", authorStr);
+      console.log("    * Match: false");
+    }
+    console.log("  - Filtered frames.length:", filteredFrames.length);
+    return filteredFrames;
   },
   then: actions([RecipeScaler["removeScaledRecipe"], { scaledRecipeId }]),
 });
@@ -812,20 +887,47 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
       return new Frames();
     }
     // Check if user owns the base recipe
-    // Convert both to strings for comparison to handle any type mismatches
+    // Handle both cases: author stored as user ID or username
     console.log("[ScaledRecipeDeletionOwnershipFailure] Checking ownership:");
     console.log("  - withSession.length:", withSession.length);
     console.log("  - withScaledRecipe.length:", withScaledRecipe.length);
     console.log("  - baseRecipeId:", baseRecipeId);
     console.log("  - withRecipe.length:", withRecipe.length);
-    const validOwnership = withRecipe.filter((frame) => {
+
+    // Check each frame for ownership
+    let validOwnershipCount = 0;
+    for (const frame of withRecipe) {
       const user = frame[authenticatedUser];
       const author = frame[recipeAuthor];
       const userStr = String(user);
       const authorStr = String(author);
-      const matches = user !== undefined &&
-        author !== undefined &&
-        userStr === authorStr;
+
+      // Direct ID match
+      if (userStr === authorStr) {
+        console.log("  - Frame check: Direct ID match");
+        validOwnershipCount++;
+        continue;
+      }
+
+      // If author looks like a username (not a UUID), check if user ID matches username
+      const isUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          authorStr,
+        );
+      if (!isUUID && typeof author === "string") {
+        // Author is a username, get user ID from username
+        const userByUsername = await UserAuthentication._getUserByUsername({
+          username: authorStr,
+        });
+        if (
+          userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
+        ) {
+          console.log("  - Frame check: Username match (author is username)");
+          validOwnershipCount++;
+          continue;
+        }
+      }
+
       console.log("  - Frame check:");
       console.log(
         "    * authenticatedUser (from session):",
@@ -839,13 +941,12 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
       );
       console.log("    * String(user):", userStr);
       console.log("    * String(author):", authorStr);
-      console.log("    * Match:", matches);
-      return matches;
-    });
-    console.log("  - validOwnership.length:", validOwnership.length);
+      console.log("    * Match: false");
+    }
+    console.log("  - validOwnership.length:", validOwnershipCount);
     // Only fire if: user is authenticated, recipe exists, but user does NOT own it
     // If valid ownership exists, return empty to let AuthenticatedScaledRecipeDeletion handle
-    if (validOwnership.length > 0) {
+    if (validOwnershipCount > 0) {
       console.log(
         "  - Ownership is VALID - returning empty to let authenticated sync handle",
       );
