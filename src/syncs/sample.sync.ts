@@ -449,9 +449,6 @@ export const AuthenticatedRecipeDeletion: Sync = ({
     );
     // Only proceed if user is authenticated AND owns the recipe
     // Handle both cases: author stored as user ID or username
-    console.log("[AuthenticatedRecipeDeletion] Checking ownership:");
-    console.log("  - withSession.length:", withSession.length);
-    console.log("  - withOwnership.length:", withOwnership.length);
 
     // Check each frame for ownership
     const filteredFrames = new Frames();
@@ -463,7 +460,6 @@ export const AuthenticatedRecipeDeletion: Sync = ({
 
       // Direct ID match
       if (userStr === authorStr) {
-        console.log("  - Frame check: Direct ID match");
         filteredFrames.push(frame);
         continue;
       }
@@ -482,28 +478,11 @@ export const AuthenticatedRecipeDeletion: Sync = ({
         if (
           userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
         ) {
-          console.log("  - Frame check: Username match (author is username)");
           filteredFrames.push(frame);
           continue;
         }
       }
-
-      console.log("  - Frame check:");
-      console.log(
-        "    * authenticatedUser (from session):",
-        user,
-        "(" + typeof user + ")",
-      );
-      console.log(
-        "    * recipeAuthor (from recipe):",
-        author,
-        "(" + typeof author + ")",
-      );
-      console.log("    * String(user):", userStr);
-      console.log("    * String(author):", authorStr);
-      console.log("    * Match: false");
     }
-    console.log("  - Filtered frames.length:", filteredFrames.length);
     return filteredFrames;
   },
   then: actions([Recipe.removeRecipe, { recipeId }]),
@@ -605,10 +584,6 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
       return new Frames();
     }
     // Recipe exists, check if user owns it
-    console.log("[RecipeDeletionOwnershipFailure] Checking ownership:");
-    console.log("  - withSession.length:", withSession.length);
-    console.log("  - recipeId:", recipeId);
-    console.log("  - withRecipe.length:", withRecipe.length);
 
     // Check each frame for ownership
     let validOwnershipCount = 0;
@@ -620,7 +595,6 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
 
       // Direct ID match
       if (userStr === authorStr) {
-        console.log("  - Frame check: Direct ID match");
         validOwnershipCount++;
         continue;
       }
@@ -638,34 +612,15 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
         if (
           userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
         ) {
-          console.log("  - Frame check: Username match (author is username)");
           validOwnershipCount++;
           continue;
         }
       }
-
-      console.log("  - Frame check:");
-      console.log(
-        "    * authenticatedUser (from session):",
-        user,
-        "(" + typeof user + ")",
-      );
-      console.log(
-        "    * recipeAuthor (from recipe):",
-        author,
-        "(" + typeof author + ")",
-      );
-      console.log("    * String(user):", userStr);
-      console.log("    * String(author):", authorStr);
-      console.log("    * Match: false");
     }
-    console.log("  - validOwnership.length:", validOwnershipCount);
     // If no valid ownership found, but recipe exists and user is authenticated, ownership failed
     if (validOwnershipCount === 0 && withRecipe.length > 0) {
-      console.log("  - Ownership FAILED - returning frames to trigger error");
       return frames; // Ownership failed - user doesn't own this recipe
     }
-    console.log("  - Ownership check passed or not applicable");
     return new Frames(); // Ownership check passed, let AuthenticatedRecipeDeletion handle
   },
   then: actions([
@@ -718,11 +673,6 @@ export const AuthenticatedScaledRecipeDeletion: Sync = ({
     );
     // Only proceed if user is authenticated AND owns the base recipe
     // Handle both cases: author stored as user ID or username
-    console.log("[AuthenticatedScaledRecipeDeletion] Checking ownership:");
-    console.log("  - withSession.length:", withSession.length);
-    console.log("  - withScaledRecipe.length:", withScaledRecipe.length);
-    console.log("  - baseRecipeId:", baseRecipeId);
-    console.log("  - withOwnership.length:", withOwnership.length);
 
     // Check each frame for ownership
     const filteredFrames = new Frames();
@@ -734,7 +684,6 @@ export const AuthenticatedScaledRecipeDeletion: Sync = ({
 
       // Direct ID match
       if (userStr === authorStr) {
-        console.log("  - Frame check: Direct ID match");
         filteredFrames.push(frame);
         continue;
       }
@@ -752,28 +701,11 @@ export const AuthenticatedScaledRecipeDeletion: Sync = ({
         if (
           userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
         ) {
-          console.log("  - Frame check: Username match (author is username)");
           filteredFrames.push(frame);
           continue;
         }
       }
-
-      console.log("  - Frame check:");
-      console.log(
-        "    * authenticatedUser (from session):",
-        user,
-        "(" + typeof user + ")",
-      );
-      console.log(
-        "    * recipeAuthor (from base recipe):",
-        author,
-        "(" + typeof author + ")",
-      );
-      console.log("    * String(user):", userStr);
-      console.log("    * String(author):", authorStr);
-      console.log("    * Match: false");
     }
-    console.log("  - Filtered frames.length:", filteredFrames.length);
     return filteredFrames;
   },
   then: actions([RecipeScaler["removeScaledRecipe"], { scaledRecipeId }]),
@@ -888,11 +820,6 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
     }
     // Check if user owns the base recipe
     // Handle both cases: author stored as user ID or username
-    console.log("[ScaledRecipeDeletionOwnershipFailure] Checking ownership:");
-    console.log("  - withSession.length:", withSession.length);
-    console.log("  - withScaledRecipe.length:", withScaledRecipe.length);
-    console.log("  - baseRecipeId:", baseRecipeId);
-    console.log("  - withRecipe.length:", withRecipe.length);
 
     // Check each frame for ownership
     let validOwnershipCount = 0;
@@ -904,7 +831,6 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
 
       // Direct ID match
       if (userStr === authorStr) {
-        console.log("  - Frame check: Direct ID match");
         validOwnershipCount++;
         continue;
       }
@@ -922,42 +848,20 @@ export const ScaledRecipeDeletionOwnershipFailure: Sync = ({
         if (
           userByUsername.length > 0 && String(userByUsername[0]._id) === userStr
         ) {
-          console.log("  - Frame check: Username match (author is username)");
           validOwnershipCount++;
           continue;
         }
       }
-
-      console.log("  - Frame check:");
-      console.log(
-        "    * authenticatedUser (from session):",
-        user,
-        "(" + typeof user + ")",
-      );
-      console.log(
-        "    * recipeAuthor (from base recipe):",
-        author,
-        "(" + typeof author + ")",
-      );
-      console.log("    * String(user):", userStr);
-      console.log("    * String(author):", authorStr);
-      console.log("    * Match: false");
     }
-    console.log("  - validOwnership.length:", validOwnershipCount);
     // Only fire if: user is authenticated, recipe exists, but user does NOT own it
     // If valid ownership exists, return empty to let AuthenticatedScaledRecipeDeletion handle
     if (validOwnershipCount > 0) {
-      console.log(
-        "  - Ownership is VALID - returning empty to let authenticated sync handle",
-      );
       return new Frames(); // Ownership is valid, let authenticated sync handle
     }
     // No valid ownership found, but recipe exists and user is authenticated - ownership failed
     if (withRecipe.length > 0 && withSession.length > 0) {
-      console.log("  - Ownership FAILED - returning frames to trigger error");
       return frames; // Ownership failed - user doesn't own this recipe
     }
-    console.log("  - Ownership check passed or not applicable");
     return new Frames(); // Default: don't fire
   },
   then: actions([
