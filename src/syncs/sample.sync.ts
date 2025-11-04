@@ -515,6 +515,8 @@ export const RecipeDeletionAuthenticationFailure: Sync = ({
  * Ownership Failure Response for Recipe Deletion
  * Responds with an error when the user doesn't own the recipe they're trying to delete.
  * This prevents timeouts when ownership check fails.
+ * Note: This sync only fires BEFORE deletion happens. If deletion already succeeded,
+ * this sync will not fire because the recipe no longer exists.
  */
 export const RecipeDeletionOwnershipFailure: Sync = ({
   request,
@@ -539,22 +541,26 @@ export const RecipeDeletionOwnershipFailure: Sync = ({
     if (withSession.length === 0) {
       return new Frames();
     }
-    // Session is valid, now check ownership
-    const withOwnership = await withSession.queryAsync(
+    // Session is valid, now check if recipe exists and ownership
+    const withRecipe = await withSession.queryAsync(
       Recipe._getRecipeById,
       { recipeId },
       { author: recipeAuthor },
     );
-    // Check if user owns the recipe
-    // If ownership check returns empty OR user doesn't match author, ownership failed
-    const validOwnership = withOwnership.filter((frame) =>
+    // If recipe doesn't exist at all, don't fire ownership failure
+    // (Either recipe never existed, or deletion already succeeded - both are handled by other syncs/errors)
+    if (withRecipe.length === 0) {
+      return new Frames();
+    }
+    // Recipe exists, check if user owns it
+    const validOwnership = withRecipe.filter((frame) =>
       frame[authenticatedUser] !== undefined &&
       frame[recipeAuthor] !== undefined &&
       frame[authenticatedUser] === frame[recipeAuthor]
     );
-    // If no valid ownership found, but we have authenticated frames, ownership failed
-    if (validOwnership.length === 0 && withSession.length > 0) {
-      return frames; // Ownership failed
+    // If no valid ownership found, but recipe exists and user is authenticated, ownership failed
+    if (validOwnership.length === 0 && withRecipe.length > 0) {
+      return frames; // Ownership failed - user doesn't own this recipe
     }
     return new Frames(); // Ownership check passed, let AuthenticatedRecipeDeletion handle
   },
