@@ -221,6 +221,7 @@ export const AuthenticatedScaling: Sync = ({
   ]),
 });
 
+// Success response for manual scaling
 export const AuthenticatedScalingResponse: Sync = ({
   request,
   scaledRecipeId,
@@ -230,6 +231,48 @@ export const AuthenticatedScalingResponse: Sync = ({
     [RecipeScaler.scaleManually, {}, { scaledRecipeId }],
   ),
   then: actions([Requesting.respond, { request, scaledRecipeId }]),
+});
+
+// Error response for manual scaling (when action returns error)
+export const ScalingErrorResponse: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/RecipeScaler/scaleManually" }, { request }],
+    [RecipeScaler.scaleManually, {}, { error }],
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+/**
+ * Authentication Failure Response for Scaling
+ * Responds with an error when authentication fails for scaling requests.
+ * This prevents timeouts when sessionId is invalid or missing.
+ * Note: This sync fires when the session check fails (no valid session found).
+ */
+export const ScalingAuthenticationFailure: Sync = ({ request, sessionId }) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/RecipeScaler/scaleManually", sessionId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // For each frame, check if session is valid
+    // If query returns empty, authentication failed
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      {},
+    );
+    // If no valid sessions found, authentication failed - return frames to trigger error
+    // If sessions found, authentication succeeded - return empty to let other sync handle
+    if (withSession.length === 0 && frames.length > 0) {
+      return frames; // Authentication failed
+    }
+    return new Frames(); // Authentication succeeded, let AuthenticatedScaling handle
+  },
+  then: actions([
+    Requesting.respond,
+    { request, error: "Authentication failed: Invalid or expired session." },
+  ]),
 });
 
 /**
@@ -272,6 +315,7 @@ export const AuthenticatedAIScaling: Sync = ({
   ]),
 });
 
+// Success response for AI scaling
 export const AuthenticatedAIScalingResponse: Sync = ({
   request,
   scaledRecipeId,
@@ -281,6 +325,51 @@ export const AuthenticatedAIScalingResponse: Sync = ({
     [RecipeScaler.scaleRecipeAI, {}, { scaledRecipeId }],
   ),
   then: actions([Requesting.respond, { request, scaledRecipeId }]),
+});
+
+// Error response for AI scaling (when action returns error)
+export const AIScalingErrorResponse: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/RecipeScaler/scaleRecipeAI" }, { request }],
+    [RecipeScaler.scaleRecipeAI, {}, { error }],
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+/**
+ * Authentication Failure Response for AI Scaling
+ * Responds with an error when authentication fails for AI scaling requests.
+ * This prevents timeouts when sessionId is invalid or missing.
+ * Note: This sync fires when the session check fails (no valid session found).
+ */
+export const AIScalingAuthenticationFailure: Sync = ({
+  request,
+  sessionId,
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/RecipeScaler/scaleRecipeAI", sessionId },
+    { request },
+  ]),
+  where: async (frames: Frames) => {
+    // For each frame, check if session is valid
+    // If query returns empty, authentication failed
+    const withSession = await frames.queryAsync(
+      UserAuthentication._getActiveSession,
+      { sessionId },
+      {},
+    );
+    // If no valid sessions found, authentication failed - return frames to trigger error
+    // If sessions found, authentication succeeded - return empty to let other sync handle
+    if (withSession.length === 0 && frames.length > 0) {
+      return frames; // Authentication failed
+    }
+    return new Frames(); // Authentication succeeded, let AuthenticatedScaling handle
+  },
+  then: actions([
+    Requesting.respond,
+    { request, error: "Authentication failed: Invalid or expired session." },
+  ]),
 });
 
 /**
