@@ -1,36 +1,25 @@
-![@RequestingConcept](../../src/concepts/Requesting/RequestingConcept.ts)
-[@README](../../src/concepts/Requesting/README.md)
-![@LikertSurverySyncs](../../src/syncs/sample.sync.ts)
-
-![@LikertSurveryConcept](../../src/concepts/LikertSurvey/LikertSurveyConcept.ts)
-![@RecipeConcept](../../src/concepts/Recipe/RecipeConcept.ts)
-![@RecipeScalerConcept](../../src/concepts/RecipeScaler/RecipeScalerConcept.ts)
-![@ScalingTipsConcept](../../src/concepts/ScalingTips/ScalingTipsConcept.ts)
-![@UserAuthConcept](../../src/concepts/UserAuthentication/UserAuthenticationConcept.ts)
-[@sync-background](../tools/sync-background.md)
-# question: can you look through the requesting concept and syncs for the likert survey concept to recommend some syncs for me to use in my recipe, recipe scaler, scaling tips, and user auth concepts?
-# response:
-
-
-# response:
-
+---
+timestamp: 'Tue Nov 04 2025 17:47:11 GMT-0500 (Eastern Standard Time)'
+parent: '[[../20251104_174711.fa4afb8f.md]]'
+content_id: b519d2c7a156250a283ad42eaeda13f19bfaefe7e678c72f0dfb2dbf86c3eaeb
+---
 
 # response:
 
 The `RequestingConcept` acts as a crucial API gateway, translating external HTTP requests into internal concept actions and waiting for the results to be returned to the client. The core mechanism involves two main actions within `Requesting`:
 
-1.  **`Requesting.request`**: Triggered by an incoming HTTP POST request, it logs the request and creates a `PendingRequest` promise. It returns a `request` ID.
-2.  **`Requesting._awaitResponse`**: Immediately called after `Requesting.request`, this method waits for the `PendingRequest` promise to resolve, up to a timeout.
-3.  **`Requesting.respond`**: This is the critical internal action that *resolves* the `PendingRequest` promise, effectively sending the response back to `_awaitResponse` and then to the HTTP client.
+1. **`Requesting.request`**: Triggered by an incoming HTTP POST request, it logs the request and creates a `PendingRequest` promise. It returns a `request` ID.
+2. **`Requesting._awaitResponse`**: Immediately called after `Requesting.request`, this method waits for the `PendingRequest` promise to resolve, up to a timeout.
+3. **`Requesting.respond`**: This is the critical internal action that *resolves* the `PendingRequest` promise, effectively sending the response back to `_awaitResponse` and then to the HTTP client.
 
 Therefore, for any concept action or query you want to expose through `RequestingConcept`, you'll typically need a two-part sync (or "recipe"):
 
-*   **Part 1 (Triggering the concept action):** Observes `Requesting.request` (filtered by the `path`) and calls the corresponding concept's action or query.
-*   **Part 2 (Responding to the client):** Observes the *output* of that concept's action/query and calls `Requesting.respond` with the original `request` ID and the result.
+* **Part 1 (Triggering the concept action):** Observes `Requesting.request` (filtered by the `path`) and calls the corresponding concept's action or query.
+* **Part 2 (Responding to the client):** Observes the *output* of that concept's action/query and calls `Requesting.respond` with the original `request` ID and the result.
 
 Let's break this down for `LikertSurveyConcept` and then generalize for your other concepts.
 
----
+***
 
 ### Syncs for `LikertSurveyConcept`
 
@@ -68,16 +57,17 @@ concept.on("LikertSurvey.createSurvey", (output) => {
 });
 ```
 
----
+***
 
 #### Specific Sync Recommendations for `LikertSurveyConcept`
 
 Here are the specific syncs for each action/query in `LikertSurveyConcept`:
 
 **1. `createSurvey`**
-*   **API Path:** `/LikertSurvey/createSurvey`
-*   **Input:** `{ author, title, scaleMin, scaleMax }`
-*   **Output:** `{ survey: Survey }` or `{ error: string }`
+
+* **API Path:** `/LikertSurvey/createSurvey`
+* **Input:** `{ author, title, scaleMin, scaleMax }`
+* **Output:** `{ survey: Survey }` or `{ error: string }`
 
 ```typescript
 // src/recipes/likertSurveyApiRecipes.ts (or similar)
@@ -111,9 +101,10 @@ concept.on("LikertSurvey.createSurvey", (output) => {
 ```
 
 **2. `addQuestion`**
-*   **API Path:** `/LikertSurvey/addQuestion`
-*   **Input:** `{ survey, text }`
-*   **Output:** `{ question: Question }` or `{ error: string }`
+
+* **API Path:** `/LikertSurvey/addQuestion`
+* **Input:** `{ survey, text }`
+* **Output:** `{ question: Question }` or `{ error: string }`
 
 ```typescript
 // Sync 1: Requesting.request -> LikertSurvey.addQuestion
@@ -142,9 +133,10 @@ concept.on("LikertSurvey.addQuestion", (output) => {
 ```
 
 **3. `submitResponse`**
-*   **API Path:** `/LikertSurvey/submitResponse`
-*   **Input:** `{ respondent, question, value }`
-*   **Output:** `Empty` (`{}`) or `{ error: string }`
+
+* **API Path:** `/LikertSurvey/submitResponse`
+* **Input:** `{ respondent, question, value }`
+* **Output:** `Empty` (`{}`) or `{ error: string }`
 
 ```typescript
 // Sync 1: Requesting.request -> LikertSurvey.submitResponse
@@ -175,9 +167,10 @@ concept.on("LikertSurvey.submitResponse", (output) => {
 ```
 
 **4. `updateResponse`**
-*   **API Path:** `/LikertSurvey/updateResponse`
-*   **Input:** `{ respondent, question, value }`
-*   **Output:** `Empty` (`{}`) or `{ error: string }`
+
+* **API Path:** `/LikertSurvey/updateResponse`
+* **Input:** `{ respondent, question, value }`
+* **Output:** `Empty` (`{}`) or `{ error: string }`
 
 ```typescript
 // Sync 1: Requesting.request -> LikertSurvey.updateResponse
@@ -207,9 +200,10 @@ concept.on("LikertSurvey.updateResponse", (output) => {
 ```
 
 **5. `_getSurveyQuestions`** (Query)
-*   **API Path:** `/LikertSurvey/_getSurveyQuestions`
-*   **Input:** `{ survey }`
-*   **Output:** `QuestionDoc[]`
+
+* **API Path:** `/LikertSurvey/_getSurveyQuestions`
+* **Input:** `{ survey }`
+* **Output:** `QuestionDoc[]`
 
 ```typescript
 // Sync 1: Requesting.request -> LikertSurvey._getSurveyQuestions
@@ -236,9 +230,10 @@ concept.on("LikertSurvey._getSurveyQuestions", (output) => {
 ```
 
 **6. `_getSurveyResponses`** (Query)
-*   **API Path:** `/LikertSurvey/_getSurveyResponses`
-*   **Input:** `{ survey }`
-*   **Output:** `ResponseDoc[]`
+
+* **API Path:** `/LikertSurvey/_getSurveyResponses`
+* **Input:** `{ survey }`
+* **Output:** `ResponseDoc[]`
 
 ```typescript
 // Sync 1: Requesting.request -> LikertSurvey._getSurveyResponses
@@ -265,9 +260,10 @@ concept.on("LikertSurvey._getSurveyResponses", (output) => {
 ```
 
 **7. `_getRespondentAnswers`** (Query)
-*   **API Path:** `/LikertSurvey/_getRespondentAnswers`
-*   **Input:** `{ respondent }`
-*   **Output:** `ResponseDoc[]`
+
+* **API Path:** `/LikertSurvey/_getRespondentAnswers`
+* **Input:** `{ respondent }`
+* **Output:** `ResponseDoc[]`
 
 ```typescript
 // Sync 1: Requesting.request -> LikertSurvey._getRespondentAnswers
@@ -293,7 +289,7 @@ concept.on("LikertSurvey._getRespondentAnswers", (output) => {
 });
 ```
 
----
+***
 
 ### General Recommendations for Recipe, RecipeScaler, ScalingTips, and UserAuth Concepts
 
@@ -301,9 +297,9 @@ The same two-part sync pattern applies to your other concepts.
 
 **For each public action or query in `Recipe`, `RecipeScaler`, `ScalingTips`, and `UserAuth`:**
 
-1.  **Identify the API Path:** This will typically be `/{ConceptName}/{actionName}` (e.g., `/Recipe/createRecipe`, `/UserAuth/login`).
-2.  **Determine Inputs:** What arguments does the concept method expect?
-3.  **Determine Outputs:** What does the concept method return (data, success/error object, `Empty` etc.)?
+1. **Identify the API Path:** This will typically be `/{ConceptName}/{actionName}` (e.g., `/Recipe/createRecipe`, `/UserAuth/login`).
+2. **Determine Inputs:** What arguments does the concept method expect?
+3. **Determine Outputs:** What does the concept method return (data, success/error object, `Empty` etc.)?
 
 **Then, create two syncs for each:**
 
@@ -351,24 +347,24 @@ concept.on("Recipe.createRecipe", (output) => {
 // e.g., concept.on("UserAuth.login", (output) => { ... })
 ```
 
----
+***
 
 ### Important Considerations:
 
-1.  **`_requestingId` Convention:** I've used `_requestingId` as a convention to pass the original `Requesting.request` ID through your concept actions/queries. This allows the second sync to know which `Requesting.respond` call to make. Ensure your concept methods can accept and return this extra property if you want to use this pattern. If your concept methods cannot accept arbitrary extra properties, you might need a slightly more complex sync pattern that uses a temporary concept state to store the mapping between concept action inputs/outputs and the `_requestingId`. However, adding `_requestingId` as an optional input/output is generally the simplest.
+1. **`_requestingId` Convention:** I've used `_requestingId` as a convention to pass the original `Requesting.request` ID through your concept actions/queries. This allows the second sync to know which `Requesting.respond` call to make. Ensure your concept methods can accept and return this extra property if you want to use this pattern. If your concept methods cannot accept arbitrary extra properties, you might need a slightly more complex sync pattern that uses a temporary concept state to store the mapping between concept action inputs/outputs and the `_requestingId`. However, adding `_requestingId` as an optional input/output is generally the simplest.
 
-2.  **Input Type Coercion:** The `request.input` will contain raw JSON values. You'll need to cast them to the correct types (`as ID`, `as string`, `as number`, `as string[]`, etc.) before passing them to your concept's methods.
+2. **Input Type Coercion:** The `request.input` will contain raw JSON values. You'll need to cast them to the correct types (`as ID`, `as string`, `as number`, `as string[]`, etc.) before passing them to your concept's methods.
 
-3.  **Output Mapping:** Pay attention to what your concept methods return.
-    *   If they return a specific object (e.g., `{ survey: ID }`), pass that object.
-    *   If they return an array (e.g., `QuestionDoc[]`), you might want to wrap it in a named property (e.g., `{ questions: output }`).
-    *   If they return `Empty` (`{}`), you should generally return a success message or a specific status to the client, possibly checking for an `error` property first.
-    *   Always include `error: output.error` if your concept methods return errors this way.
+3. **Output Mapping:** Pay attention to what your concept methods return.
+   * If they return a specific object (e.g., `{ survey: ID }`), pass that object.
+   * If they return an array (e.g., `QuestionDoc[]`), you might want to wrap it in a named property (e.g., `{ questions: output }`).
+   * If they return `Empty` (`{}`), you should generally return a success message or a specific status to the client, possibly checking for an `error` property first.
+   * Always include `error: output.error` if your concept methods return errors this way.
 
-4.  **`passthrough.ts` and Exclusions/Inclusions:**
-    The `RequestingConcept` code includes a section for "Passthrough Routes" based on `exclusions` and `inclusions` in `passthrough.ts`.
-    *   If a route is listed in `exclusions`, `Requesting` will *not* create a direct passthrough route for it. This is good if you want `Requesting` to fully manage that endpoint through your syncs.
-    *   If a route is *not* in `exclusions` and `Requesting` creates a direct passthrough route (which it does by default for all concept methods), then your custom `Requesting.request` syncs for that route might conflict or be redundant.
-    *   **Recommendation:** For any route you want `RequestingConcept` to *orchestrate* via these two-part syncs, ensure that the corresponding path (`/ConceptName/methodName`) is either **explicitly excluded** in `passthrough.ts` or that you rely *only* on the `Requesting` path and *do not* want a direct passthrough. The current setup will default to passthrough, so if you want orchestration, you might need to add paths to `exclusions`.
+4. **`passthrough.ts` and Exclusions/Inclusions:**
+   The `RequestingConcept` code includes a section for "Passthrough Routes" based on `exclusions` and `inclusions` in `passthrough.ts`.
+   * If a route is listed in `exclusions`, `Requesting` will *not* create a direct passthrough route for it. This is good if you want `Requesting` to fully manage that endpoint through your syncs.
+   * If a route is *not* in `exclusions` and `Requesting` creates a direct passthrough route (which it does by default for all concept methods), then your custom `Requesting.request` syncs for that route might conflict or be redundant.
+   * **Recommendation:** For any route you want `RequestingConcept` to *orchestrate* via these two-part syncs, ensure that the corresponding path (`/ConceptName/methodName`) is either **explicitly excluded** in `passthrough.ts` or that you rely *only* on the `Requesting` path and *do not* want a direct passthrough. The current setup will default to passthrough, so if you want orchestration, you might need to add paths to `exclusions`.
 
 By following this pattern, you can effectively expose all your concept's actions and queries as API endpoints through the `RequestingConcept`, leveraging its request logging, timeout handling, and unified API gateway functionality.

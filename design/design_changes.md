@@ -1,84 +1,20 @@
-### Application Design: Before vs. After Concept Design Refactoring
+## Scale & Savor Design Changes Over Time
 
-#### 1. **Modularity & Responsibility Distribution**
+### Backend Concept Changes
 
-*   **Before:**
-    *   **Conflated `Recipe`:** My initial `Scaler` class suggested a single entity or component responsible for *both* storing recipe definitions *and* handling scaling logic.
-    *   **Vague `TipsPage`:** The initial `TipsPage` was somewhat generic, and its interaction with other parts of the application (like scaling) was undefined.
-    *   **Implicit Interactions:** Components likely interacted through direct method calls or shared data structures, leading to tighter coupling.
-*   **After (Concept Design):**
-    *   **Clear, Single-Purpose Concepts:** The application is now composed of distinct, specialized services:
-        *   `Recipe`: Focuses *only* on the canonical definition and ownership of recipes.
-        *   `RecipeScaler`: Focuses *only* on generating and managing *instances* of scaled recipes (both manual and AI).
-        *   `ScalingTips`: Focuses *only* on managing and generating *context-specific* scaling tips.
-    *   **Decoupled Domain Logic:** Each concept encapsulates a single, coherent aspect of the application's functionality. This makes the system much easier to understand, develop, and maintain.
+*   **Redundant Concepts:** Some original concept ideas like my initial `Ingredient` concept would have been simply a database and was ultimately removed. After this realization I was careful to make each concept something that had substantial actions associated with it.
+*   **Structural Changes:** I also separated each concept in my application. Initially most of the application was based off of the `RecipeScaler`, but I changed this to simply store each scaled recipe instance and the actions associated with scaling. From this initial concept I also made a new `Recipe` concept that held the representation of a base recipe associated with each user to allow for easier lookups of specific recipes.
+*   **Sync Updates:** The syncs in my initial design were very rudimentary. The core sync of automatically generating cooking tips when scaling recipes using AI still exists and create various tips for each recipe scaled using AI. In addition, the critical actions of my application now have syncs that authenticate each user before they make a change like adding, removing, or scaling recipes.
+*   **Simplification of Steps:** The initial design of the application required a lot of upfront information from the user when inputting recipes. The new design of the application goes with the actual process of cooking where you can pick up and put down the app at any moment. This flexibility allows a user to enter a recipe and not come back to it until they are ready to scale.
+*   **Scaled Recipe Instances:** The change to `RecipeScaler` that made each scaled recipe an instance also allowed for added flexibility. When preparing to cook, the number of users can always change and the ability to scale recipes to different target servings allows for this flexibility.
+*   **Less Strictness:** Removing the database concept `Ingredient`, reduces the strictness of the original design. Initially, each ingredient would be added to a database with scaling context for the LLM. This was ultimately removed to allow for more generalization as the same ingredient might get scaled very differently depending on how it is used in the recipe.
+*   **User Authentication:** The addition of this concept was a major oversight in the initial design. This concept not only allows for multiple users to have different recipe databases but also allows more flexibility for one user to come and go when they please as long as they have their credentials. Although this application doesn't store the most sensitive data, it makes sure to keep secure the data that it does have.
 
-#### 2. **Data Flow & Ownership**
+### Front End Changes
 
-*   **Before:**
-    *   **Potential Data Duplication:** The `Scaler` class having its own `Map<string, Recipe>` could lead to inconsistencies if the "main" `Recipe` data changed elsewhere.
-    *   **Undefined Ownership:** The `Scaler` concept initially lacked an `author` field, making recipe ownership unclear and implicitly "public" or requiring external (and thus violating "completeness") handling of permissions.
-*   **After (Concept Design):**
-    *   **Single Source of Truth:** The `Recipe` concept is the definitive owner of all base recipe data.
-    *   **Referential Integrity:** `RecipeScaler` and `ScalingTips` don't duplicate `Recipe` data; instead, they store *references* (`baseRecipeId`, `relatedRecipeId`) to the `Recipe` concept, ensuring consistency.
-    *   **Explicit Ownership:** The `author: Author` field in `Recipe` explicitly establishes ownership, enabling clear permission models (e.g., only the author can edit their recipe). This `Author` is a polymorphic `ID`, decoupling `Recipe` from the specifics of user authentication.
+[Initial Design](./../InitialDesign.png) \
+[Final Design](./../FinalDesign.png)
 
-#### 3. **Inter-Concept Communication**
-
-*   **Before:**
-    *   **Direct Coupling:** Interactions between components (e.g., `Scaler` accessing `Ingredient` details) were likely direct, creating tight coupling where changes in one could easily break another.#### 3. `ScalingTips` Concept (from "tipsPage" to "context-specific generated tips")
-
-**Original Idea (`TipsPage` Concept):**
-*   **Purpose:** "stores an increasing number of tips for certain aspects of cooking."
-*   **State:** "a set of Cooking Methods", "a scaling up tip (optional)", "a scaling down tip (optional)" (implying one tip per category).
-*   **Actions:** `addTip` (general), `requestTip` (general query).
-*   **LLM Role:** Unclear how LLM would integrate or if it would generate tips at all.
-
-**Current `ScalingTips` Concept:**
-*   **Purpose Refined & Expanded:** "To store, manage, and **generate context-specific practical tips** related to scaling recipes..." This explicitly includes LLM generation and contextual relevance.
-*   **State Refined:** `Tips` now allows for:
-    *   Multiple `TipDoc` records for each `cookingMethod` and `direction`.
-    *   Rich metadata per tip: `source` (`'manual'` or `'generated'`), `relatedRecipeId` (for generated tips), `generatedContextHash` (to prevent duplicate AI generation), `addedBy`, `dateAdded`.
-*   **Actions Refined:**
-    *   `addManualScalingTip`: For user-contributed tips.
-    *   `requestTipGeneration`: This is a powerful new action that:
-        *   Takes a `RecipeGenerationContext` (the full recipe details from `Recipe`).
-        *   Internally calls the `llmClient` to generate tips based on this context.
-        *   Stores these generated tips in its own state.
-    *   `removeScalingTip`: For managing tips.
-*   **Key Design Changes:**
-    *   **Scope Refinement:** Sharpened the focus from general "tips" to "scaling tips."
-    *   **Active LLM Integration:** The concept is no longer passive; it actively *generates* tips based on input context, fully encapsulating that complex behavior.
-    *   **Completeness:** It owns the LLM prompting and parsing logic for tip generation.
-    *   **Contextual Tips:** The `relatedRecipeId` and `generatedContextHash` fields ensure that AI-generated tips are specific and avoid redundant regeneration.
-    *   **Composition via Syncs:** Designed to be triggered by other concepts (like `RecipeScaler`) via `syncs`, demonstrating robust inter-concept communication.
-*   **After (Concept Design):**
-    *   **Polymorphic Dependencies:** Concepts interact using generic `ID` types, minimizing assumptions between concepts.
-
-#### 4. **Testability & Maintainability**
-
-*   **Before:**
-    *   **Challenging Isolation:** Testing was more complex due to tight coupling and direct external dependencies.
-    *   **Higher Risk of Regression:** Changes in one part could easily break others due to dependencies.
-*   **After (Concept Design):**
-    *   **Highly Testable:** Each concept can be tested in isolation by providing mock implementations for its dependencies (e.g., a mock `RecipeConcept` for `RecipeScaler` tests).
-    *   **Clear Test Scopes:** The `testDb()` utility ensures a clean database state for every individual test, guaranteeing isolation and preventing test interference.
-    *   **Reduced Regression Risk:** The explicit boundaries and interface-based communication make changes more localized and predictable.
-
-### Issues Encountered
-*   **Unclear Concepts:** My initial design of the concepts I had were very vague and not the best to implement when thinking about the bigger picture. At this time I chose to use context to help me refine my concepts more to how they were described in the rubric.
-*   **Parameters in Concepts:** There were some clear lack of connections between some of my concepts. For example, one of the main changes was to implement authors associated with each of the recipes. This along with IDs made interconnectivity between the concepts much easier. This also led to the design of the user authentication concept.
-*   **Updating the LLM for Deno:** I took advantage of context's knowledge of deno to be able to turn the original code of the LLM into something more usable with Deno.
-*   **User Authentication:** Upon thinking about these concepts more as a whole application, I realized that there would be multiple users with different recipes. Changing my concepts on a larger scale to accept multiple users was a worthwhile change in the long run of the application. The authentication system is simple but allows for much more usability.
-*   **LLM Prompting:** Learning how to best prompt the LLM was a large part of working on the code for the Tips page. Since this was not implemented before I was able to use my knowledge from previously working on the prompt to create the prompt for the tips.
-*   **Consistency with getter functions:** Initially the getter functions that were meant to return one object only returned that one item but for better functionality with the front end, I changed them to return an array with one object.
-
-### Conclusion: A More Robust and Scalable Application
-
-In summary, my application has evolved from a potentially intertwined system to a **well-structured, highly modular, and behaviorally focused architecture**. Each "feature" of my recipe application is now a self-contained, independently understandable, and reusable **concept**.
-
-This shift provides:
-
-*   **Greater Clarity:** Each part of the system is easier to reason about individually.
-*   **Improved Scalability:** Development teams can work on different concepts in parallel with minimal coordination overhead.
-*   **Stronger Reliability:** Explicit preconditions and effects reduce unexpected behavior.
+*   **Web vs Mobile:** The current version of the application is only designed as a web application. When designing each part of the front end I made sure to not include any features that would not work equally as well on a mobile application. The fact that most information is displayed on tiles that are able to be moved around allows for flexibility of the interface. This allows for the application to be deployed both on the web and mobile devices.
+*   **Color Palette:** After much research, the final color palette includes colors that are warm and clean, invoking a fresh plate of food. These are present throughout the application and highlight important information on each screen. This is a move away from the initial design that had a more modern look to the interface. Although the app is still very modern and professional, it combines this feeling with the colors to showcase what the core of the app is about: Recipes.
+*   **Moving Automation:** Most logic was stored in the front end for the last assignment. This assignment moved additional logic to the backend and set up a method for offloading complex logic from the front end of the application. This allows for more security so not all api endpoints are directly accessible from the user-facing front end.
