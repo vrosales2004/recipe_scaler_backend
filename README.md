@@ -1,6 +1,6 @@
 # 6.104 Assignment 4: Implementing Concepts
 ## Deliverables
-[Final Design Changes](./design/design_changes.md)
+[Final Design Changes](./design/design_changes.md) \
 [Reflection](./design/Reflection.md)
 
 ### Recipe
