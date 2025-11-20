@@ -429,7 +429,7 @@ Deno.test("_getRecipeById: should return an empty list if the recipe ID does not
     assertEquals(
       fetchedRecipe,
       [],
-      "Should return null for a non-existent recipe ID",
+      "Should return an empty list for a non-existent recipe ID",
     );
   } finally {
     await client.close();
